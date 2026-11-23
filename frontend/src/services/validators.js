@@ -1,11 +1,16 @@
 // Validaciones reutilizables (login, registro, recuperación de contraseña).
 // Cada función devuelve un mensaje de error o '' si el valor es válido.
+// (Archivo del repo del compañero, sin cambios; se incluye aquí porque
+// Registro.jsx lo usa y esta entrega solo trae los archivos cambiados.)
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 export const PASSWORD_RULES = [
   { id: 'length', label: 'Mínimo 8 caracteres', test: (v) => v.length >= 8 },
   { id: 'upper', label: 'Al menos una mayúscula', test: (v) => /[A-ZÁÉÍÓÚÑ]/.test(v) },
+  // El backend (RegisterRequest) exige minúscula con (?=.*[a-z]); sin esta
+  // regla el formulario aceptaba "DOCENTE123*" y el servidor la rechazaba.
+  { id: 'lower', label: 'Al menos una minúscula', test: (v) => /[a-záéíóúñ]/.test(v) },
   { id: 'number', label: 'Al menos un número', test: (v) => /\d/.test(v) },
   { id: 'special', label: 'Al menos un carácter especial', test: (v) => /[^A-Za-z0-9\sÁÉÍÓÚÑáéíóúñ]/.test(v) },
 ]

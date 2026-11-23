@@ -1,0 +1,20 @@
+meta {
+  name: 02 - Resumen calificaciones (docente)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/calificaciones/resumen
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Resumen devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

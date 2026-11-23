@@ -1,0 +1,20 @@
+meta {
+  name: 01 - Listar tareas (docente)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/tareas
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Listar tareas devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

@@ -1,0 +1,35 @@
+meta {
+  name: 03 - Login estudiante (semilla)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "ana.sofia@colegio.edu",
+    "password": "Estudiante123*"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && body.token) {
+    bru.setVar("tokenEstudiante", body.token);
+  }
+}
+
+tests {
+  test("Login devuelve 200 con token", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

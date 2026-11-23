@@ -46,7 +46,7 @@ export default function Navbar({ onMenuClick }) {
             <Avatar name={user?.nombre} src={user?.avatar} />
             <span className="profile__info">
               <span className="profile__name">{user?.nombre}</span>
-              <span className="profile__role">Docente</span>
+              <span className="profile__role">{user?.rol === 'ESTUDIANTE' ? 'Estudiante' : 'Docente'}</span>
             </span>
             <ChevronDown size={16} className={`profile__chevron${open ? ' is-open' : ''}`} />
           </button>

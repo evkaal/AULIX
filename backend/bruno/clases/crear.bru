@@ -1,0 +1,41 @@
+meta {
+  name: 02 - Crear clase (docente)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/clases
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "nombre": "Historia",
+    "grupo": "3° A",
+    "ciclo": 2026,
+    "descripcion": "Historia de México",
+    "diasSemana": "MAR,JUE",
+    "horaInicio": "11:00",
+    "horaFin": "12:00",
+    "aula": "Aula 4",
+    "tema": "orange",
+    "simbolo": "1492",
+    "icono": "book"
+  }
+}
+
+tests {
+  test("Crear clase devuelve 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

@@ -1,0 +1,20 @@
+meta {
+  name: 01 - Resumen docente
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/docente/resumen
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Resumen docente devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

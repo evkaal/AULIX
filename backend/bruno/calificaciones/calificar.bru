@@ -1,0 +1,32 @@
+meta {
+  name: 01 - Calificar entrega 1 (docente)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/entregas/1/calificacion
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "nota": 9.0,
+    "comentario": "Muy buen trabajo."
+  }
+}
+
+tests {
+  test("Calificar devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

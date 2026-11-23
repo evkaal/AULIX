@@ -1,19 +1,73 @@
-// Datos SIMULADOS para el avance visual. Cuando exista el backend,
-// reemplazar el cuerpo de estas funciones por llamadas con Axios/fetch
-// (enviando el JWT en el header Authorization).
+// classService.js — ADAPTADO al backend Spring Boot de AULIX.
+// Copiar a frontend/src/services/classService.js (reemplaza los datos simulados).
+// Usa GET /api/docente/resumen o /api/estudiante/resumen según el rol guardado
+// en la sesión ('aulix_session'), y adapta la respuesta al formato que
+// ya espera Inicio.jsx: { clases: [...], actividad: [...] }.
 
-const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+import { apiFetch, getSession } from './authService'
 
-export async function getResumenInicio() {
-  await wait(700)
+function iniciales(nombre = '') {
+  return nombre
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? '')
+    .join('')
+}
+
+function adaptarClase(c) {
   return {
-    clases: [
-      { id: 1, nombre: 'Matemáticas', grupo: '3° A', ciclo: 2026, estudiantes: 28, tareasActivas: 3, tema: 'blue', icono: 'calculator', formula: 'x² + y²' },
-      { id: 2, nombre: 'Ciencias', grupo: '3° A', ciclo: 2026, estudiantes: 28, tareasActivas: 2, tema: 'green', icono: 'flask', formula: 'H₂O' },
-      { id: 3, nombre: 'Lengua y Literatura', grupo: '3° B', ciclo: 2026, estudiantes: 26, tareasActivas: 3, tema: 'purple', icono: 'book', formula: 'Aa' },
-    ],
-    actividad: [
-      { id: 1, iniciales: 'AS', tema: 'green', texto: 'Ana Sofía García entregó “Ecuaciones de primer grado”.', detalle: 'Matemáticas · 3° A · Hace 40 min' },
-    ],
+    id: c.id,
+    nombre: c.nombre,
+    grupo: c.grupo,
+    ciclo: c.ciclo,
+    estudiantes: c.estudiantes ?? 0,
+    tareasActivas: c.tareasActivas ?? 0,
+    tema: c.tema ?? 'blue',
+    icono: c.icono ?? 'book',
+    formula: c.simbolo ?? c.formula ?? '',
   }
+}
+
+function adaptarActividad(a) {
+  return {
+    id: a.id,
+    iniciales: a.iniciales ?? iniciales(a.texto ?? ''),
+    tema: a.tema ?? 'green',
+    texto: a.texto,
+    detalle: a.detalle,
+  }
+}
+
+export async function getResumenDocente() {
+  const data = await apiFetch('/docente/resumen')
+  return {
+    clases: (data.clases ?? []).map(adaptarClase),
+    actividad: (data.actividad ?? []).map(adaptarActividad),
+    proximasEntregas: data.proximasEntregas ?? [],
+  }
+}
+
+export async function getResumenEstudiante() {
+  const data = await apiFetch('/estudiante/resumen')
+  return {
+    clases: (data.materias ?? data.clases ?? []).map(adaptarClase),
+    actividad: (data.anuncios ?? []).map((a) => ({
+      id: a.id,
+      iniciales: iniciales(a.autor ?? ''),
+      tema: 'blue',
+      texto: a.texto,
+      detalle: `${a.claseNombre ?? ''} · ${a.createdAt ?? ''}`,
+    })),
+    tareasPendientes: data.tareasPendientes ?? 0,
+    trabajosCalificados: data.trabajosCalificados ?? 0,
+    proximasEntregas: data.proximasEntregas ?? [],
+  }
+}
+
+/** La que usa Inicio.jsx: elige el resumen según el rol de la sesión. */
+export async function getResumenInicio() {
+  const rol = getSession()?.user?.rol
+  if (rol === 'DOCENTE') return getResumenDocente()
+  return getResumenEstudiante()
 }

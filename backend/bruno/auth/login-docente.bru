@@ -1,0 +1,35 @@
+meta {
+  name: 02 - Login docente (semilla)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "laura@colegio.edu",
+    "password": "Docente123*"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && body.token) {
+    bru.setVar("token", body.token);
+  }
+}
+
+tests {
+  test("Login devuelve 200 con token", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

@@ -1,0 +1,25 @@
+meta {
+  name: 03 - Enviar mensaje a la clase 1
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/mensajes/conversaciones/1/mensajes
+  body: form-data
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:form-data {
+  texto: Hola a todos, ¿alguna duda con la tarea?
+}
+
+tests {
+  test("Enviar mensaje devuelve 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

@@ -1,0 +1,20 @@
+meta {
+  name: 04 - Sin leer
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/mensajes/sin-leer
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Sin leer devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

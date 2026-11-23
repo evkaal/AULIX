@@ -1,0 +1,38 @@
+meta {
+  name: 03 - Crear tarea (docente)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/tareas
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "claseId": 1,
+    "titulo": "Tarea de prueba",
+    "descripcion": "Descripción de prueba",
+    "instrucciones": "Resuelve y sube el PDF.",
+    "fechaActivacion": "2026-10-21T08:00:00",
+    "fechaVencimiento": "2026-10-29T23:59:00",
+    "activacionAutomatica": true,
+    "estado": "ACTIVA"
+  }
+}
+
+tests {
+  test("Crear tarea devuelve 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

@@ -1,0 +1,20 @@
+meta {
+  name: 04 - Exportar calificaciones CSV (docente)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/calificaciones/exportar
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Exportar devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

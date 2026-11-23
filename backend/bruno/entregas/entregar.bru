@@ -1,0 +1,26 @@
+meta {
+  name: 01 - Entregar tarea 1 (estudiante, multipart)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/tareas/1/entregas
+  body: form-data
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEstudiante}}
+}
+
+body:form-data {
+  archivo: [file: ./tarea-ejemplo.pdf]
+  comentario: Mi entrega de prueba.
+}
+
+tests {
+  test("Entregar devuelve 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

@@ -1,0 +1,18 @@
+[Unit]
+Description=AULIX - API Spring Boot con JWT (puerto 8106)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+User=ubuntu
+WorkingDirectory=/opt/aulix
+# Las credenciales y el secreto JWT viven en /opt/aulix/.env (NO en este
+# archivo ni en el repo). Copia deploy/.env.example a /opt/aulix/.env
+# y rellena los valores reales antes de arrancar el servicio.
+EnvironmentFile=/opt/aulix/.env
+ExecStart=/usr/bin/java -jar /opt/aulix/aulix-0.0.1-SNAPSHOT.jar
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

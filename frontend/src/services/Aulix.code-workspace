@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "Aulix",
+			"path": "../../.."
+		}
+	],
+	"settings": {
+		"java.compile.nullAnalysis.mode": "automatic"
+	}
+}

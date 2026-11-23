@@ -1,0 +1,20 @@
+meta {
+  name: 01 - Listar clases
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/clases
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Listar clases devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

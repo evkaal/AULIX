@@ -1,0 +1,20 @@
+meta {
+  name: 01 - Calendario docente octubre 2026
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/calendario?mes=2026-10
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Calendario docente devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

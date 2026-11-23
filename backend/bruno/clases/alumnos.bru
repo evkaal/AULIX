@@ -1,0 +1,20 @@
+meta {
+  name: 05 - Alumnos de la clase 1
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/clases/1/alumnos
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Alumnos devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

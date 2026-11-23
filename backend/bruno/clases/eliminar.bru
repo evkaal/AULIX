@@ -1,0 +1,20 @@
+meta {
+  name: 07 - Eliminar clase (docente)
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{baseUrl}}/api/clases/1
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Eliminar clase devuelve 204", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

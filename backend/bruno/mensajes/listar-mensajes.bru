@@ -1,0 +1,20 @@
+meta {
+  name: 02 - Mensajes de la clase 1
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/mensajes/conversaciones/1/mensajes
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Mensajes devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

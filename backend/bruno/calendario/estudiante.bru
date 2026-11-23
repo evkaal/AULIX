@@ -1,0 +1,20 @@
+meta {
+  name: 02 - Calendario estudiante octubre 2026
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/estudiante/calendario?mes=2026-10
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEstudiante}}
+}
+
+tests {
+  test("Calendario estudiante devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

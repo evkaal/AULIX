@@ -1,0 +1,16 @@
+meta {
+  name: 05 - Sin token (esperado 401)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/clases
+  auth: none
+}
+
+tests {
+  test("Sin token devuelve 401", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+}

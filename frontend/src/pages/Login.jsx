@@ -79,15 +79,15 @@ export default function Login() {
           </h1>
         </div>
 
-        <div className="brand-illustration">
-          {!imageFailed && (
+        {!imageFailed && (
+          <div className="brand-illustration">
             <img
               src="/images/comunidad.png"
               alt="Estudiantes colaborando alrededor de una mesa"
               onError={() => setImageFailed(true)}
             />
-          )}
-        </div>
+          </div>
+        )}
       </section>
 
       <section className="login__access">
@@ -191,11 +191,13 @@ export default function Login() {
 
           <p className="login-form__register">
             ¿Aún no tienes cuenta?
-            <button type="button" className="link" onClick={comingSoon('El registro')}>Regístrate gratis</button>
+            <button type="button" className="link" onClick={() => navigate('/registro')}>Regístrate gratis</button>
           </p>
 
           <p className="login-form__demo">
-            Cuenta de prueba: <strong>emilys@colegio.edu</strong> / <strong>emilyspass</strong>
+            Docente: <strong>laura@colegio.edu</strong> / <strong>Docente123*</strong>
+            <br />
+            Estudiante: <strong>ana.sofia@colegio.edu</strong> / <strong>Estudiante123*</strong>
           </p>
         </form>
       </section>

@@ -1,0 +1,20 @@
+meta {
+  name: 03 - Revision de la entrega 1
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/entregas/1/revision
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Revision devuelve 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

@@ -1,0 +1,20 @@
+meta {
+  name: 05 - Eliminar tarea (docente)
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/tareas/1
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Eliminar tarea devuelve 204", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

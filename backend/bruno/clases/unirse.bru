@@ -1,0 +1,31 @@
+meta {
+  name: 04 - Unirse con codigo (estudiante)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/clases/unirse
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{tokenEstudiante}}
+}
+
+body:json {
+  {
+    "codigo": "LEN-3B-2026"
+  }
+}
+
+tests {
+  test("Unirse devuelve 200 (o 400 si ya esta inscrito)", function() {
+    expect([200, 400]).to.include(res.getStatus());
+  });
+}

@@ -3,7 +3,7 @@
   --blue-600: #1675d1;   /* acciones primarias */
   --blue-700: #1062b5;
   --ink: #23374d;        /* texto principal */
-  --muted: #748398;      /* texto secundario */
+  --muted: #5A6B80;      /* texto secundario (antes #748398: contraste 3.86:1, no pasaba WCAG AA) */
   --border: #e5ebf2;
   --border-strong: #c8d3e0;
   --danger: #d93f3f;
@@ -24,6 +24,10 @@ body {
 button, input { font: inherit; }
 img { max-width: 100%; display: block; }
 :focus-visible { outline: 2px solid var(--blue-600); outline-offset: 2px; }
+/* Los inputs del login no llevan outline propio: su anillo de foco es el
+   del contenedor (.field__control:focus-within en login.css). Sin esta
+   excepción, el outline global dibujaba un segundo cuadro azul al escribir. */
+.field__input:focus-visible { outline: none; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
