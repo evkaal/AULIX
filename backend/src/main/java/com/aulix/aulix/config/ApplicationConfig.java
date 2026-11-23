@@ -53,11 +53,14 @@ public class ApplicationConfig {
      * CORS para el frontend de Vite (http://localhost:5173) y el propio
      * backend. Sin esto el navegador bloquea las peticiones del frontend
      * aunque el backend responda bien.
+     * En producción (VPS) el frontend se sirve desde Nginx en el mismo
+     * origen, así que hay que permitir el dominio y la IP del VPS.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8106"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8106",
+                "https://aulix.study", "http://159.173.138.239"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         config.setAllowCredentials(true);
