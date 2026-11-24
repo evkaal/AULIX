@@ -67,13 +67,8 @@ export function AuthProvider({ children }) {
 
   const user = session?.user ?? null
   const value = useMemo(
-<<<<<<< HEAD
-    () => ({ user: session?.user ?? null, token: session?.token ?? null, isAuthenticated: !!session?.token, login, loginWithGoogle, register, logout }),
-    [session, login, loginWithGoogle, register, logout],
-=======
-    () => ({ user, token: session?.token ?? null, isAuthenticated: !!session?.token, rol: user?.rol ?? null, rolLabel: user?.rol ? ROLE_LABEL[user.rol] ?? user.rol : '', login, register, logout, updateUser }),
-    [session, user, login, register, logout, updateUser],
->>>>>>> 9347d006ad88d7a9b9b410caf9a1cc252fbfb5d4
+    () => ({ user, token: session?.token ?? null, isAuthenticated: !!session?.token, rol: user?.rol ?? null, rolLabel: user?.rol ? ROLE_LABEL[user.rol] ?? user.rol : '', login, loginWithGoogle, register, logout, updateUser }),
+    [session, user, login, loginWithGoogle, register, logout, updateUser],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

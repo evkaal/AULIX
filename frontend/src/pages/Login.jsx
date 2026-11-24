@@ -93,7 +93,6 @@ export default function Login() {
 
   const comingSoon = (feature) => () => setNotice(`${feature} estará disponible en la siguiente entrega.`)
 
-<<<<<<< HEAD
   /** Inicio con Google (Google Identity Services, flujo ID token).
    *  Se mantiene el botón propio con su estilo: no se usa el botón
    *  renderizado de Google. Al hacer clic se carga el script de Google,
@@ -140,14 +139,14 @@ export default function Login() {
       })
       .catch((err) => setApiError({ message: err.message, type: 'network' }))
       .finally(() => setGoogleLoading(false))
-=======
+  }
+
   // Acceso rápido demo (solo VITE_DEMO_MODE=true): rellena una cuenta demo.
   const entrarDemo = (correo) => {
     const u = DEMO_USERS.find((x) => x.correo === correo)
     if (!u) return
     setValues({ email: u.correo, password: u.password })
     setTouched({ email: true, password: true })
->>>>>>> 9347d006ad88d7a9b9b410caf9a1cc252fbfb5d4
   }
 
   return (
@@ -170,17 +169,10 @@ export default function Login() {
           <p className="login2__subtitle">¡Qué gusto verte! Tu clase, conectada.</p>
         </header>
 
-<<<<<<< HEAD
-          <button type="button" className="btn-google" onClick={handleGoogleLogin} disabled={loading || googleLoading}>
+          <button type="button" className="btn-google login2__google" onClick={handleGoogleLogin} disabled={loading || googleLoading}>
             <span className="btn-google__g" aria-hidden="true">G</span>
             {googleLoading ? 'Conectando con Google...' : 'Continuar con Google'}
           </button>
-=======
-        <button type="button" className="btn-google login2__google" onClick={comingSoon('El acceso con Google')}>
-          <span className="btn-google__g" aria-hidden="true">G</span>
-          Continuar con Google
-        </button>
->>>>>>> 9347d006ad88d7a9b9b410caf9a1cc252fbfb5d4
 
         <div className="divider"><span>o con tu correo</span></div>
 
