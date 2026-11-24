@@ -34,19 +34,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> handleNotFound(EntityNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("status", 404, "error", ex.getMessage()));
+                .body(Map.of("status", 404, "error", mensajeSeguro(ex)));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("status", 400, "error", ex.getMessage()));
+                .body(Map.of("status", 400, "error", mensajeSeguro(ex)));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<?> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Map.of("status", 403, "error", ex.getMessage()));
+                .body(Map.of("status", 403, "error", mensajeSeguro(ex)));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
@@ -65,5 +65,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleMaxUpload(MaxUploadSizeExceededException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("status", 400, "error", "El archivo supera el tamaño máximo de 20 MB"));
+    }
+
+    /** Map.of no acepta valores nulos: si la excepción no trae mensaje
+     *  (pasa con tokens JWT malformados), usa uno genérico para no
+     *  convertir un 400 en un 500. */
+    private String mensajeSeguro(Exception ex) {
+        return ex.getMessage() != null ? ex.getMessage() : "Solicitud inválida";
     }
 }

@@ -92,7 +92,9 @@ public class AuthService {
         GoogleIdToken googleIdToken;
         try {
             googleIdToken = verifier.verify(idToken);
-        } catch (GeneralSecurityException | IOException e) {
+        } catch (GeneralSecurityException | IOException | IllegalArgumentException e) {
+            // verify() lanza IllegalArgumentException (sin mensaje) si el token
+            // no es un JWT válido; se convierte en un 400 con mensaje.
             throw new IllegalArgumentException("Token de Google inválido");
         }
         if (googleIdToken == null) {
