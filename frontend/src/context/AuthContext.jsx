@@ -13,10 +13,13 @@ function readSession(remembered) {
   }
 }
 
+export const ROLE_LABEL = { DOCENTE: 'Docente', ESTUDIANTE: 'Estudiante', ADMIN: 'Administrador', ALUMNO: 'Estudiante' }
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => readSession())
 
   const saveSession = useCallback((data, remember) => {
+    if (data?.user?.rol === 'ALUMNO') data = { ...data, user: { ...data.user, rol: 'ESTUDIANTE' } }
     const storage = remember ? localStorage : sessionStorage
     localStorage.removeItem(STORAGE_KEY)
     sessionStorage.removeItem(STORAGE_KEY)
@@ -38,15 +41,26 @@ export function AuthProvider({ children }) {
     return saveSession(data, false)
   }, [saveSession])
 
+  const updateUser = useCallback((patch) => {
+    setSession((cur) => {
+      if (!cur) return cur
+      const next = { ...cur, user: { ...cur.user, ...patch } }
+      const raw = localStorage.getItem(STORAGE_KEY) ? localStorage : sessionStorage
+      raw.setItem(STORAGE_KEY, JSON.stringify(next))
+      return next
+    })
+  }, [])
+
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY)
     sessionStorage.removeItem(STORAGE_KEY)
     setSession(null)
   }, [])
 
+  const user = session?.user ?? null
   const value = useMemo(
-    () => ({ user: session?.user ?? null, token: session?.token ?? null, isAuthenticated: !!session?.token, login, register, logout }),
-    [session, login, register, logout],
+    () => ({ user, token: session?.token ?? null, isAuthenticated: !!session?.token, rol: user?.rol ?? null, rolLabel: user?.rol ? ROLE_LABEL[user.rol] ?? user.rol : '', login, register, logout, updateUser }),
+    [session, user, login, register, logout, updateUser],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
