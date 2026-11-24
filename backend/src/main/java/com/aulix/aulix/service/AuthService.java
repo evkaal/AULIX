@@ -36,6 +36,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
 
     /** ID de cliente de OAuth de Google Cloud (ver application.properties).
      *  Sin él, el inicio con Google no está configurado. */
@@ -56,6 +57,9 @@ public class AuthService {
                 .activo(true)
                 .build();
         usuarioRepository.save(usuario);
+        // El correo de bienvenida no debe hacer fallar ni ralentizar el registro:
+        // se manda en un hilo aparte y si Resend falla solo queda en el log.
+        emailService.sendBienvenidaAsync(usuario.getEmail(), usuario.getNombre());
         String jwtToken = jwtService.generateToken(usuario);
         return new AuthResponse(jwtToken, UserResponse.of(usuario));
     }
@@ -133,6 +137,8 @@ public class AuthService {
                     .avatarUrl(foto)
                     .build();
             usuarioRepository.save(usuario);
+            // Solo al crear la cuenta (no al entrar con una existente).
+            emailService.sendBienvenidaAsync(usuario.getEmail(), usuario.getNombre());
         }
         String jwtToken = jwtService.generateToken(usuario);
         return new AuthResponse(jwtToken, UserResponse.of(usuario));
