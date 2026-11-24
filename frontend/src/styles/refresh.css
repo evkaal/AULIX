@@ -1,0 +1,138 @@
+/* AULIX — rediseño visual (v10).
+   Capa de estilos que se carga DESPUÉS de layout/pages/inicio y ANTES de
+   theme.css (modo oscuro). Solo CSS: no cambia la lógica ni el backend.
+   Objetivos: menos "enredado" -> jerarquía clara, más aire, un solo estilo
+   de tarjeta/tabla/botón/badge, navegación lateral más limpia. */
+
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --surface-2: #f8fafd;
+  --track: #e9eef6;
+  --shadow-sm: 0 1px 2px rgba(16, 42, 67, 0.06), 0 1px 3px rgba(16, 42, 67, 0.04);
+  --shadow-md: 0 6px 20px rgba(16, 42, 67, 0.08);
+  --ring: 0 0 0 3px rgba(22, 117, 209, 0.22);
+}
+
+body { background: var(--bg); line-height: 1.5; }
+.app { background: var(--bg); }
+
+/* ---------- Estructura: contenido centrado y con aire ---------- */
+.app__content { padding: 32px clamp(16px, 3vw, 40px) 48px; gap: 28px; max-width: 1280px; margin: 0 auto; width: 100%; }
+
+/* ---------- Barra superior ---------- */
+.navbar { height: 68px; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.navbar__brand { font-size: 24px; letter-spacing: -0.02em; }
+.profile__trigger { border-radius: 999px; padding: 4px 10px 4px 4px; }
+.profile__trigger:hover { background: var(--bg); }
+
+/* ---------- Menú lateral ---------- */
+.sidebar { width: 232px; background: var(--surface); padding: 20px 14px; gap: 18px; }
+.sidebar__menu { gap: 4px; }
+.sidebar__title { padding: 0 12px; margin-bottom: 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.sidebar__link { position: relative; height: 44px; border-radius: var(--radius-sm); font-weight: 600; color: var(--ink); }
+.sidebar__link svg { color: var(--muted); transition: color 0.15s; }
+.sidebar__link:hover { background: var(--bg); }
+.sidebar__link:hover svg { color: var(--blue-600); }
+.sidebar__link.is-active { background: var(--blue-50); color: var(--blue-700); font-weight: 800; }
+.sidebar__link.is-active svg { color: var(--blue-600); }
+.sidebar__link.is-active::before { content: ''; position: absolute; left: -14px; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: var(--blue-600); }
+.sidebar__badge { min-width: 22px; height: 22px; padding: 0 7px; display: inline-grid; place-items: center; border-radius: 999px; background: var(--blue-600); color: #fff; font-size: 11px; }
+
+/* ---------- Encabezados ---------- */
+.page-head { padding-bottom: 4px; }
+.page-title { font-size: 28px; letter-spacing: -0.02em; line-height: 1.25; }
+.page-subtitle { color: var(--muted); font-size: 15px; margin-top: 6px; }
+.page-date { padding: 8px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-sm); }
+.section-head { margin-bottom: 16px; }
+.section-head h2 { font-size: 18px; letter-spacing: -0.01em; }
+
+/* ---------- Botones ---------- */
+.btn { height: 40px; border-radius: var(--radius-sm); font-weight: 700; transition: background 0.15s, box-shadow 0.15s, transform 0.05s; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn--primary { box-shadow: 0 1px 2px rgba(16, 42, 67, 0.18); }
+.btn--ghost { background: var(--surface); }
+:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
+
+/* ---------- Tarjetas: un solo estilo para todo ---------- */
+.class-card, .feed, .pg-card, .pg-kpi, .pg-form-panel, .pg-table-wrap, .pg-empty, .pg-cal, .pg-chat, .pg-conv-list, .card, .list-card, .material-card, .table-wrap, .profile-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm);
+}
+.class-card { transition: box-shadow 0.18s, transform 0.18s; }
+.class-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.class-card__cover { height: 88px; }
+.class-card__info { color: var(--ink); }
+.class-card__name { font-size: 16px; }
+.classes { gap: 20px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.feed__item { border-top: 1px solid var(--border); }
+.feed__item:first-of-type { border-top: 0; }
+.feed__detail { color: var(--muted); font-size: 14px; }
+.feed__title { font-size: 14px; }
+
+/* ---------- Indicadores (KPIs) ---------- */
+.pg-kpis { gap: 16px; }
+.pg-kpi { padding: 18px 20px; display: flex; flex-direction: column; gap: 2px; }
+.pg-kpi__value { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; color: var(--blue-700); line-height: 1.15; }
+.pg-kpi__label { font-size: 13px; font-weight: 700; color: var(--muted); }
+
+/* ---------- Tablas ---------- */
+.pg-table, .table { border-collapse: separate; border-spacing: 0; width: 100%; }
+.pg-table th, .table th { position: sticky; top: 0; background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+.pg-table td, .table td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.pg-table tbody tr:last-child td, .table tbody tr:last-child td { border-bottom: 0; }
+.pg-table tbody tr:hover, .table tbody tr:hover { background: var(--surface-2); }
+
+/* ---------- Formularios ---------- */
+.pg-input, .pg-select, .pg-textarea, .select, .textarea, .search input {
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pg-input:focus, .pg-select:focus, .pg-textarea:focus { outline: none; border-color: var(--blue-600); box-shadow: var(--ring); }
+.pg-label { font-size: 13px; font-weight: 700; color: var(--ink); }
+.pg-hint { color: var(--muted); font-size: 13px; }
+.pg-form-panel { padding: 22px; }
+
+/* ---------- Pestañas tipo "píldora" ---------- */
+.pg-tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--track); border-radius: 999px; border: 0; width: fit-content; max-width: 100%; overflow-x: auto; }
+.pg-tab { border: 0; background: transparent; border-radius: 999px; padding: 7px 16px; font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.pg-tab:hover { color: var(--ink); }
+.pg-tab[aria-selected="true"], .pg-tab.is-active, .pg-tab--active { background: var(--surface); color: var(--blue-700); box-shadow: var(--shadow-sm); }
+
+/* ---------- Badges de estado ---------- */
+.pg-badge, .badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; line-height: 1.6; }
+.pg-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.8; }
+
+/* ---------- Avisos / estados ---------- */
+.alert, .pg-alert, .pg-error { border-radius: var(--radius-sm); }
+.pg-empty { padding: 40px 24px; text-align: center; color: var(--muted); border-style: dashed; box-shadow: none; }
+.skeleton { border-radius: var(--radius); }
+
+/* ---------- Modal ---------- */
+.modal-backdrop { background: rgba(16, 42, 67, 0.5); backdrop-filter: blur(2px); }
+.modal { border-radius: 18px; box-shadow: 0 24px 60px rgba(16, 42, 67, 0.3); }
+
+/* ---------- Banner de modo demo (ahora discreto) ---------- */
+.demo-banner { border-radius: 0; font-size: 13px; padding: 6px 16px; }
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 900px) {
+  .navbar { height: 60px; }
+  .app__content { padding: 20px 16px 40px; gap: 22px; }
+  .sidebar.is-open { box-shadow: 8px 0 32px rgba(16, 42, 67, 0.22); }
+  .sidebar__link.is-active::before { left: -14px; }
+  .pg-kpi__value { font-size: 26px; }
+}
+
+/* ---------- Modo oscuro (valores de las variables nuevas) ---------- */
+html[data-theme="dark"] {
+  --surface: #141d2e;
+  --surface-2: #19243a;
+  --track: #1d2a42;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --ring: 0 0 0 3px rgba(80, 160, 240, 0.35);
+}
+html[data-theme="dark"] .sidebar__link.is-active { color: #9fd0ff; }
+html[data-theme="dark"] .pg-kpi__value { color: #8fc7ff; }
+html[data-theme="dark"] .pg-tab[aria-selected="true"], html[data-theme="dark"] .pg-tab.is-active, html[data-theme="dark"] .pg-tab--active { color: #9fd0ff; }
