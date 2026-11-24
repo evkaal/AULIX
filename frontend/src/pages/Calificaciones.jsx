@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Download, RefreshCw, Search, TriangleAlert, WifiOff } from 'lucide-react'
+import { Download, Printer, RefreshCw, Search, TriangleAlert, WifiOff } from 'lucide-react'
 import Avatar from '../components/Avatar'
 import { useAuth } from '../context/AuthContext'
 import { apiDownload, apiFetch, apiFetchText } from '../services/authService'
@@ -86,23 +86,79 @@ export default function Calificaciones() {
     }
   }
 
-  const exportar = async () => {
+  // Lee el CSV del backend (GET /api/calificaciones/exportar, endpoint que
+  // ya existe) y lo convierte a filas para armar una exportacion bonita.
+  const obtenerFilasExport = async () => {
+    const params = new URLSearchParams()
+    if (claseSel) params.set('materiaId', claseSel.claseId)
+    params.set('ciclo', '2026')
+    const csv = await apiFetchText(`/calificaciones/exportar?${params}`)
+    const rows = parseCsv(csv)
+    return rows.slice(1).map((r) => ({ alumno: r[0] ?? '', correo: r[1] ?? '', tarea: r[2] ?? '', clase: r[3] ?? '', nota: r[4] ?? '', comentario: r[5] ?? '', fecha: r[6] ?? '' }))
+  }
+  const descargar = (blob, nombre) => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = nombre
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+  const fechaExport = () => new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date())
+
+  const exportarCSV = async () => {
     setExportando(true)
     setExportError('')
     try {
-      const params = new URLSearchParams()
-      if (claseSel) params.set('materiaId', claseSel.claseId)
-      params.set('ciclo', '2026')
-      const csv = await apiFetchText(`/calificaciones/exportar?${params}`)
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'calificaciones.csv'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
+      const filas = await obtenerFilasExport()
+      const claseNombre = claseSel?.claseNombre ?? 'Todas las clases'
+      const lineas = [
+        'Aulix — Calificaciones',
+        `Clase: ${claseNombre}`,
+        'Ciclo: 2026',
+        `Fecha de exportación: ${fechaExport()}`,
+        `Total de calificaciones: ${filas.length}`,
+        '',
+        ['Alumno', 'Correo', 'Tarea', 'Clase', 'Nota', 'Comentario', 'Fecha'].map(csvCellOut).join(','),
+        ...filas.map((f) => [f.alumno, f.correo, f.tarea, f.clase, f.nota, f.comentario, f.fecha].map(csvCellOut).join(',')),
+      ]
+      if (!filas.length) lineas.push('Sin calificaciones registradas.')
+      const hoy = new Date().toISOString().slice(0, 10)
+      descargar(new Blob(['\ufeff' + lineas.join('\n')], { type: 'text/csv;charset=utf-8' }), `calificaciones-${claseSel ? claseSel.claseId : 'todas'}-${hoy}.csv`)
+    } catch (err) {
+      setExportError(err.message)
+    } finally {
+      setExportando(false)
+    }
+  }
+
+  // Tabla para imprimir / guardar como PDF (ventana de impresion del
+  // navegador, sin librerias nuevas): en el dialogo elige "Guardar como PDF".
+  const imprimirTabla = async () => {
+    setExportando(true)
+    setExportError('')
+    try {
+      const filas = await obtenerFilasExport()
+      const claseNombre = claseSel?.claseNombre ?? 'Todas las clases'
+      const win = window.open('', '_blank', 'width=900,height=700')
+      if (!win) {
+        setExportError('El navegador bloqueó la ventana de impresión. Permite las ventanas emergentes para Aulix e inténtalo de nuevo.')
+        return
+      }
+      const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      win.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Calificaciones — Aulix</title><style>
+        body{font-family:system-ui,sans-serif;color:#12365b;margin:32px} h1{font-size:20px;margin:0 0 4px}
+        p{margin:2px 0;color:#5a6b80;font-size:13px} table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+        th,td{border:1px solid #c8d3e0;padding:8px 10px;text-align:left} th{background:#eaf4ff} tr:nth-child(even) td{background:#f4f7fb}
+        @media print{body{margin:0}}
+      </style></head><body><h1>Aulix — Calificaciones</h1><p>Clase: ${esc(claseNombre)} · Ciclo: 2026 · Fecha de exportación: ${esc(fechaExport())} · Total: ${filas.length}</p>
+      ${filas.length ? `<table><thead><tr><th>Alumno</th><th>Correo</th><th>Tarea</th><th>Clase</th><th>Nota</th><th>Comentario</th><th>Fecha</th></tr></thead><tbody>${filas.map((f) => `<tr><td>${esc(f.alumno)}</td><td>${esc(f.correo)}</td><td>${esc(f.tarea)}</td><td>${esc(f.clase)}</td><td>${esc(f.nota)}</td><td>${esc(f.comentario)}</td><td>${esc(f.fecha)}</td></tr>`).join('')}</tbody></table>` : '<p>Sin calificaciones registradas.</p>'}
+      </body></html>`)
+      win.document.close()
+      win.focus()
+      win.print()
     } catch (err) {
       setExportError(err.message)
     } finally {
@@ -120,11 +176,17 @@ export default function Calificaciones() {
           <p className="page-subtitle">{esDocente ? 'Revisa y califica los trabajos entregados.' : 'Tus notas y la retroalimentación de tus docentes.'}</p>
         </div>
         {esDocente && (
-          <button type="button" className="btn btn--ghost" onClick={exportar} disabled={exportando}>
-            <Download size={16} /> {exportando ? 'Exportando...' : 'Exportar calificaciones'}
-          </button>
+          <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn--ghost btn-download" onClick={exportarCSV} disabled={exportando}>
+              <Download size={16} /> {exportando ? 'Exportando…' : 'Exportar calificaciones (CSV)'}
+            </button>
+            <button type="button" className="btn btn--ghost btn-download" onClick={imprimirTabla} disabled={exportando}>
+              <Printer size={16} /> Imprimir tabla de calificaciones (PDF)
+            </button>
+          </span>
         )}
       </div>
+      <p className="pg-hint">El CSV trae encabezado con clase, ciclo y fecha de exportación. &ldquo;Imprimir tabla&rdquo; abre la tabla lista para imprimir o guardar como PDF.</p>
       {exportError && <p className="pg-error" role="alert">{exportError}</p>}
 
       {status === 'loading' && <p className="pg-loading">Cargando calificaciones…</p>}
@@ -165,7 +227,7 @@ export default function Calificaciones() {
           <div className="pg-kpis">
             <div className="pg-kpi"><span className="pg-kpi__value">{porCalificarTotal}</span><span className="pg-kpi__label">Entregas por calificar</span></div>
             <div className="pg-kpi"><span className="pg-kpi__value">{resumen.calificacionesTotales ?? 0}</span><span className="pg-kpi__label">Entregas calificadas</span></div>
-            <div className="pg-kpi"><span className="pg-kpi__value">{resumen.promedioGeneral ?? 0}/10</span><span className="pg-kpi__label">Promedio general</span></div>
+            <div className="pg-kpi"><span className="pg-kpi__value">{resumen.calificacionesTotales > 0 && resumen.promedioGeneral != null ? `${resumen.promedioGeneral}/10` : '—'}</span><span className="pg-kpi__label">Promedio general{resumen.calificacionesTotales > 0 ? '' : ' · Sin calificaciones aún'}</span></div>
           </div>
 
           <div className="section-head"><h2>Por materia</h2></div>
@@ -173,7 +235,7 @@ export default function Calificaciones() {
             <p className="pg-empty">Aún no hay entregas en tus materias.</p>
           ) : (
             <div className="pg-cards">
-              {resumen.porClase.map((c) => (
+              {(resumen.porClase ?? []).map((c) => (
                 <article key={c.claseId} className={`pg-card${claseSel?.claseId === c.claseId ? ' is-selected' : ''}`}>
                   <h3>{c.claseNombre}</h3>
                   <p>{c.entregasRecibidas ?? 0} entregas recibidas</p>
@@ -228,7 +290,7 @@ export default function Calificaciones() {
                   <table className="pg-table">
                     <thead><tr><th>ALUMNO</th><th>ENTREGAS</th><th>POR CALIFICAR</th><th>PROMEDIO</th></tr></thead>
                     <tbody>
-                      {alumnos.content.map((a) => (
+                      {(alumnos.content ?? []).map((a) => (
                         <tr key={a.id} className="is-clickable" onClick={() => verAlumno(a)}>
                           <td><span style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Avatar name={a.nombre} src={a.avatar} size={32} /><span><span className="pg-strong">{a.nombre}</span><br /><span className="pg-sub">{a.correo}</span></span></span></td>
                           <td>{a.entregasRecibidas}/{a.entregasTotales}</td>
@@ -329,7 +391,7 @@ function EntregaCard({ entrega, onCalificada }) {
           <Link className="btn btn--ghost btn--sm" to={`/calificaciones/entrega/${entrega.id}`}>Vista previa →</Link>
           <button
             type="button"
-            className="btn btn--ghost btn--sm"
+            className="btn btn--ghost btn--sm btn-download"
             onClick={() => apiDownload(`/entregas/${entrega.id}/archivo`, entrega.archivoNombre).catch(() => {})}
           >
             <Download size={14} /> Descargar {entrega.archivoNombre}
@@ -355,4 +417,31 @@ function EntregaCard({ entrega, onCalificada }) {
       </form>
     </article>
   )
+}
+
+// Mini parser CSV (respeta comillas y comas dentro de comillas) para leer
+// el CSV que devuelve GET /api/calificaciones/exportar.
+function parseCsv(text) {
+  const rows = []
+  let row = []
+  let cur = ''
+  let inQ = false
+  const pushCell = () => { row.push(cur); cur = '' }
+  const pushRow = () => { rows.push(row); row = [] }
+  for (let i = 0; i < (text || '').length; i += 1) {
+    const ch = text[i]
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { cur += '"'; i += 1 } else inQ = false
+      } else cur += ch
+    } else if (ch === '"') inQ = true
+    else if (ch === ',') pushCell()
+    else if (ch === '\n') { pushCell(); pushRow() }
+    else if (ch !== '\r') cur += ch
+  }
+  if (cur !== '' || row.length) { pushCell(); pushRow() }
+  return rows.filter((r) => r.length > 1 || (r[0] ?? '').trim() !== '')
+}
+function csvCellOut(v) {
+  return `"${String(v ?? '').replace(/"/g, '""')}"`
 }

@@ -1,23 +1,21 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Pencil, Plus, RefreshCw, Search, Trash2, TriangleAlert, WifiOff, X } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, RefreshCw, Search, Trash2, TriangleAlert, WifiOff, X } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 import Avatar from '../components/Avatar'
 import { useAuth } from '../context/AuthContext'
-import { apiFetch, apiFetchForm } from '../services/authService'
-import { fmtHora } from '../utils/format'
+import { apiFetch } from '../services/authService'
+import { ThemePicker, resolveClassTheme, classIcon } from '../components/ClassTheme'
+import AvisosClase from '../components/AvisosClase'
+import ChatClase from '../components/ChatClase'
+import MaterialesSection from '../components/MaterialesSection'
+import { fmtHora, normHora, miEstadoBadge } from '../utils/format'
 import '../styles/pages.css'
 
 const DIAS = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB']
-const TEMAS = [
-  { value: 'blue', label: 'Azul' },
-  { value: 'green', label: 'Verde' },
-  { value: 'purple', label: 'Morado' },
-]
-
 const emptyForm = {
   nombre: '', grupo: '', ciclo: 2026, descripcion: '', dias: ['LUN', 'MIE', 'VIE'],
-  horaInicio: '08:00', horaFin: '09:00', aula: '', tema: 'blue', simbolo: '', icono: 'book',
+  horaInicio: '08:00', horaFin: '09:00', aula: '', tema: 'blue', icono: 'book',
 }
 
 export default function MisClases() {
@@ -106,7 +104,6 @@ export default function MisClases() {
           horaFin: form.horaFin || null,
           aula: form.aula.trim() || null,
           tema: form.tema,
-          simbolo: form.simbolo.trim() || null,
           icono: form.icono,
         }),
       })
@@ -234,24 +231,9 @@ export default function MisClases() {
                 <span className="pg-label">Hora de fin</span>
                 <input className="pg-input" type="time" value={form.horaFin} onChange={(e) => setForm({ ...form, horaFin: e.target.value })} />
               </label>
-              <label className="pg-field">
-                <span className="pg-label">Color</span>
-                <select className="pg-select" value={form.tema} onChange={(e) => setForm({ ...form, tema: e.target.value })}>
-                  {TEMAS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </label>
-              <label className="pg-field">
-                <span className="pg-label">Icono</span>
-                <select className="pg-select" value={form.icono} onChange={(e) => setForm({ ...form, icono: e.target.value })}>
-                  <option value="calculator">Calculadora</option>
-                  <option value="flask">Matraz</option>
-                  <option value="book">Libro</option>
-                </select>
-              </label>
-              <label className="pg-field">
-                <span className="pg-label">Símbolo</span>
-                <input className="pg-input" value={form.simbolo} onChange={(e) => setForm({ ...form, simbolo: e.target.value })} placeholder="x² + y²" />
-              </label>
+              <div className="pg-field" style={{ gridColumn: '1 / -1' }}>
+                <ThemePicker value={{ tema: form.tema, icono: form.icono }} nombre={form.nombre} grupo={form.grupo} onChange={(v) => setForm({ ...form, tema: v.tema, icono: v.icono })} />
+              </div>
             </div>
             <label className="pg-field">
               <span className="pg-label">Descripción</span>
@@ -306,17 +288,19 @@ export default function MisClases() {
       {status === 'ready' && clases.length > 0 && (
         <>
           <div className="pg-cards">
-            {clases.map((c) => (
-              <article key={c.id} className={`class-card class-card--${c.tema ?? 'blue'}`}>
-                <div className="class-card__cover">
-                  <BookOpen size={30} strokeWidth={1.5} aria-hidden="true" />
-                  <span className="class-card__formula">{c.simbolo ?? ''}</span>
+            {clases.map((c) => {
+              const theme = resolveClassTheme(c)
+              const CardIcon = classIcon(c.icono)
+              return (
+              <article key={c.id} className="class-card">
+                <div className="class-card__cover" style={{ background: theme.bg, color: theme.fg }}>
+                  <CardIcon size={30} strokeWidth={1.5} aria-hidden="true" />
                 </div>
                 <div className="class-card__info">
                   <div className="class-card__row">
-                    <h3 className="class-card__name">{c.nombre}</h3>
+                    <h3 className="class-card__name">{c.nombre || "Clase sin nombre"}</h3>
                   </div>
-                  <p>{c.grupo} · Ciclo {c.ciclo}</p>
+                  <p>{c.grupo || "Sin grupo"} · Ciclo {c.ciclo}</p>
                   <p>{c.estudiantes ?? 0} estudiantes · {c.horaInicio ? `${fmtHora(`2000-01-01T${c.horaInicio}`)}–${fmtHora(`2000-01-01T${c.horaFin}`)}` : 'Sin horario'} {c.aula ? `· ${c.aula}` : ''}</p>
                   <div className="class-card__footer">
                     <span>{c.tareasActivas ?? 0} tareas activas</span>
@@ -324,7 +308,8 @@ export default function MisClases() {
                   </div>
                 </div>
               </article>
-            ))}
+              )
+            })}
           </div>
           <p className="pg-hint">
             {clases.length} {clases.length === 1 ? 'materia' : 'materias'} · {clases.reduce((a, c) => a + (c.estudiantes ?? 0), 0)} inscripciones · Ciclo 2026
@@ -336,9 +321,8 @@ export default function MisClases() {
 }
 
 function DetalleClase({ clase, detalle, status, esDocente, onVolver, onRecargar, onActualizada, onEliminada }) {
-  const [anuncio, setAnuncio] = useState('')
-  const [publicando, setPublicando] = useState(false)
-  const [anuncioError, setAnuncioError] = useState('')
+  // Pestañas de la clase (v5): Avisos | Mensajes | Materiales/Videos.
+  const [tab, setTab] = useState('avisos')
   // Editar clase: el backend ya tenía PUT /api/clases/{id}; la vista no lo usaba.
   const [showEditar, setShowEditar] = useState(false)
   const [editForm, setEditForm] = useState(null)
@@ -348,19 +332,27 @@ function DetalleClase({ clase, detalle, status, esDocente, onVolver, onRecargar,
   const [eliminando, setEliminando] = useState(false)
   const [eliminarError, setEliminarError] = useState('')
 
-  const abrirEditar = () => {
+  // BUG CORREGIDO (v3): antes se pre-llenaba con el objeto de la lista,
+  // que podía venir incompleto (o con horas "08:00:00" que el input
+  // type=time muestra vacías). Ahora se pide la clase fresca por id y
+  // las horas se normalizan a "HH:MM" antes de ponerlas en el formulario.
+  const abrirEditar = async () => {
+    let actual = clase
+    try {
+      const fresca = await apiFetch(`/clases/${clase.id}`)
+      if (fresca && typeof fresca === 'object') actual = fresca
+    } catch { /* se usa la clase de la lista */ }
     setEditForm({
-      nombre: clase.nombre ?? '',
-      grupo: clase.grupo ?? '',
-      ciclo: clase.ciclo ?? 2026,
-      descripcion: clase.descripcion ?? '',
-      dias: clase.diasSemana ? clase.diasSemana.split(',') : ['LUN', 'MIE', 'VIE'],
-      horaInicio: clase.horaInicio ?? '',
-      horaFin: clase.horaFin ?? '',
-      aula: clase.aula ?? '',
-      tema: clase.tema ?? 'blue',
-      simbolo: clase.simbolo ?? '',
-      icono: clase.icono ?? 'book',
+      nombre: actual.nombre ?? '',
+      grupo: actual.grupo ?? '',
+      ciclo: actual.ciclo ?? 2026,
+      descripcion: actual.descripcion ?? '',
+      dias: actual.diasSemana ? actual.diasSemana.split(',') : ['LUN', 'MIE', 'VIE'],
+      horaInicio: normHora(actual.horaInicio),
+      horaFin: normHora(actual.horaFin),
+      aula: actual.aula ?? '',
+      tema: actual.tema ?? 'blue',
+      icono: actual.icono ?? 'book',
     })
     setEditError('')
     setShowEditar(true)
@@ -384,11 +376,10 @@ function DetalleClase({ clase, detalle, status, esDocente, onVolver, onRecargar,
           ciclo: editForm.ciclo ? Number(editForm.ciclo) : null,
           descripcion: editForm.descripcion.trim() || null,
           diasSemana: editForm.dias.join(','),
-          horaInicio: editForm.horaInicio || null,
-          horaFin: editForm.horaFin || null,
+          horaInicio: normHora(editForm.horaInicio) || null,
+          horaFin: normHora(editForm.horaFin) || null,
           aula: editForm.aula.trim() || null,
           tema: editForm.tema,
-          simbolo: editForm.simbolo.trim() || null,
           icono: editForm.icono,
         }),
       })
@@ -420,12 +411,6 @@ function DetalleClase({ clase, detalle, status, esDocente, onVolver, onRecargar,
     ...f,
     dias: f.dias.includes(dia) ? f.dias.filter((d) => d !== dia) : [...f.dias, dia],
   }))
-  const [materialNombre, setMaterialNombre] = useState('')
-  const [materialTipo, setMaterialTipo] = useState('ARCHIVO')
-  const [materialUrl, setMaterialUrl] = useState('')
-  const [materialArchivo, setMaterialArchivo] = useState(null)
-  const [subiendo, setSubiendo] = useState(false)
-  const [materialError, setMaterialError] = useState('')
   // Código de invitación (solo docente): viene en clase.codigoInvitacion
   // pero la vista nunca lo mostraba, así que nadie podía compartirlo.
   const [copiado, setCopiado] = useState(false)
@@ -440,60 +425,13 @@ function DetalleClase({ clase, detalle, status, esDocente, onVolver, onRecargar,
     }
   }
 
-  const publicarAnuncio = async (e) => {
-    e.preventDefault()
-    if (!anuncio.trim()) return
-    setPublicando(true)
-    setAnuncioError('')
-    try {
-      await apiFetch(`/clases/${clase.id}/anuncios`, { method: 'POST', body: JSON.stringify({ texto: anuncio.trim() }) })
-      setAnuncio('')
-      onRecargar()
-    } catch (err) {
-      setAnuncioError(err.message)
-    } finally {
-      setPublicando(false)
-    }
-  }
-
-  const subirMaterial = async (e) => {
-    e.preventDefault()
-    setMaterialError('')
-    if (materialTipo === 'ARCHIVO' && !materialArchivo) {
-      setMaterialError('Selecciona un archivo.')
-      return
-    }
-    if (materialTipo === 'VIDEO' && !materialUrl.trim()) {
-      setMaterialError('Escribe la URL del video.')
-      return
-    }
-    const fd = new FormData()
-    if (materialArchivo) fd.append('archivo', materialArchivo)
-    fd.append('tipo', materialTipo)
-    fd.append('nombre', materialNombre.trim() || materialArchivo?.name || 'Material')
-    if (materialUrl.trim()) fd.append('url', materialUrl.trim())
-    setSubiendo(true)
-    try {
-      await apiFetchForm(`/clases/${clase.id}/materiales`, fd)
-      setMaterialNombre('')
-      setMaterialUrl('')
-      setMaterialArchivo(null)
-      e.target.reset()
-      onRecargar()
-    } catch (err) {
-      setMaterialError(err.message)
-    } finally {
-      setSubiendo(false)
-    }
-  }
-
   return (
     <>
       <div className="page-head">
         <div>
           <button type="button" className="btn btn--ghost btn--sm" onClick={onVolver}><ArrowLeft size={16} /> Mis clases</button>
-          <h1 className="page-title" style={{ marginTop: 8 }}>{clase.nombre}</h1>
-          <p className="page-subtitle">{clase.grupo} · Ciclo {clase.ciclo} · {clase.docenteNombre ? `Docente: ${clase.docenteNombre}` : ''} {clase.aula ? `· ${clase.aula}` : ''}</p>
+          <h1 className="page-title" style={{ marginTop: 8 }}>{clase.nombre || "Clase sin nombre"}</h1>
+          <p className="page-subtitle">{clase.grupo || "Sin grupo"} · Ciclo {clase.ciclo} · {clase.docenteNombre ? `Docente: ${clase.docenteNombre}` : ''} {clase.aula ? `· ${clase.aula}` : ''}</p>
           {esDocente && clase.codigoInvitacion && (
             <p className="page-subtitle" style={{ marginTop: 4 }}>
               Código para que tus alumnos se unan: <strong>{clase.codigoInvitacion}</strong>{' '}
@@ -546,24 +484,9 @@ function DetalleClase({ clase, detalle, status, esDocente, onVolver, onRecargar,
                 <span className="pg-label">Hora de fin</span>
                 <input className="pg-input" type="time" value={editForm.horaFin} onChange={(e) => setEditForm({ ...editForm, horaFin: e.target.value })} />
               </label>
-              <label className="pg-field">
-                <span className="pg-label">Color</span>
-                <select className="pg-select" value={editForm.tema} onChange={(e) => setEditForm({ ...editForm, tema: e.target.value })}>
-                  {TEMAS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </label>
-              <label className="pg-field">
-                <span className="pg-label">Icono</span>
-                <select className="pg-select" value={editForm.icono} onChange={(e) => setEditForm({ ...editForm, icono: e.target.value })}>
-                  <option value="calculator">Calculadora</option>
-                  <option value="flask">Matraz</option>
-                  <option value="book">Libro</option>
-                </select>
-              </label>
-              <label className="pg-field">
-                <span className="pg-label">Símbolo</span>
-                <input className="pg-input" value={editForm.simbolo} onChange={(e) => setEditForm({ ...editForm, simbolo: e.target.value })} />
-              </label>
+              <div className="pg-field" style={{ gridColumn: '1 / -1' }}>
+                <ThemePicker value={{ tema: editForm.tema, icono: editForm.icono }} nombre={editForm.nombre} grupo={editForm.grupo} onChange={(v) => setEditForm({ ...editForm, tema: v.tema, icono: v.icono })} />
+              </div>
             </div>
             <label className="pg-field">
               <span className="pg-label">Descripción</span>
@@ -621,7 +544,7 @@ function DetalleClase({ clase, detalle, status, esDocente, onVolver, onRecargar,
                     <table className="pg-table">
                       <thead><tr><th>ALUMNO</th><th>ENTREGAS</th><th>POR CALIFICAR</th><th>PROMEDIO</th></tr></thead>
                       <tbody>
-                        {detalle.alumnos.content.map((a) => (
+                        {(detalle.alumnos.content ?? []).map((a) => (
                           <tr key={a.id}>
                             <td><span style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Avatar name={a.nombre} src={a.avatar} size={32} /><span><span className="pg-strong">{a.nombre}</span><br /><span className="pg-sub">{a.correo}</span></span></span></td>
                             <td>{a.entregasRecibidas}/{a.entregasTotales}</td>
@@ -643,96 +566,46 @@ function DetalleClase({ clase, detalle, status, esDocente, onVolver, onRecargar,
                 ) : (
                   <div className="pg-table-wrap">
                     <table className="pg-table">
-                      <thead><tr><th>TAREA</th><th>VENCIMIENTO</th><th>MI ESTADO</th></tr></thead>
+                      <thead><tr><th>TAREA</th><th>VENCIMIENTO</th><th>MI ESTADO</th><th>ACCIÓN</th></tr></thead>
                       <tbody>
-                        {detalle.misTareas.map((t) => (
-                          <tr key={t.id}>
-                            <td className="pg-strong">{t.titulo}</td>
-                            <td>{t.fechaVencimiento ? new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(t.fechaVencimiento)) : '—'}</td>
-                            <td>{t.miEstado ?? '—'}</td>
-                          </tr>
-                        ))}
+                        {[...(detalle.misTareas ?? [])].sort((a, b) => String(a.fechaVencimiento || '').localeCompare(String(b.fechaVencimiento || ''))).map((t) => {
+                          const b = miEstadoBadge(t.miEstado)
+                          const entregada = b.clase !== 'pendiente'
+                          return (
+                            <tr key={t.id}>
+                              <td><span className="pg-strong">{t.titulo}</span><br /><span className="pg-sub">{t.claseNombre || ''}</span></td>
+                              <td>{t.fechaVencimiento ? new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(t.fechaVencimiento)) : '—'}</td>
+                              <td><span className={`pg-badge pg-badge--${b.clase}`}>{b.label}</span>{t.miNota != null ? ` · ${t.miNota}/10` : ''}</td>
+                              <td><Link className="btn btn--ghost btn--sm" to={`/tareas/${t.id}`}>{entregada ? 'Ver entrega' : 'Entregar'}</Link></td>
+                            </tr>
+                          )
+                        })}
                       </tbody>
                     </table>
                   </div>
                 )}
               </section>
             )}
-
-            <section>
-              <div className="section-head"><h2>Anuncios</h2></div>
-              {esDocente && (
-                <form className="pg-form" onSubmit={publicarAnuncio} style={{ marginBottom: 12 }}>
-                  <label className="pg-field">
-                    <span className="pg-label">Publicar anuncio</span>
-                    <textarea className="pg-textarea" value={anuncio} onChange={(e) => setAnuncio(e.target.value)} placeholder="¿Qué quieres compartir con tu clase?" />
-                  </label>
-                  {anuncioError && <p className="pg-error" role="alert">{anuncioError}</p>}
-                  <div className="pg-actions"><button type="submit" className="btn btn--primary" disabled={publicando}>{publicando ? 'Publicando...' : 'Publicar'}</button></div>
-                </form>
-              )}
-              {detalle.anuncios?.length === 0 ? (
-                <p className="pg-empty">Aún no hay anuncios en esta clase.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {detalle.anuncios.map((a) => (
-                    <div key={a.id} className="pg-card">
-                      <p style={{ color: 'var(--ink)', fontSize: 14 }}>{a.texto}</p>
-                      <p>{a.autorNombre} · {a.createdAt ? new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(a.createdAt)) : ''}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
           </div>
-
-          <aside style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <section>
-              <div className="section-head"><h2>Materiales</h2></div>
-              {detalle.materiales?.length === 0 ? (
-                <p className="pg-empty">Sin materiales todavía.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {detalle.materiales.map((m) => (
-                    <div key={m.id} className="pg-card" style={{ padding: 12 }}>
-                      <span className="pg-strong" style={{ fontSize: 14 }}>{m.nombre}</span>
-                      <span className="pg-sub">{m.tipo}{m.tamanoBytes ? ` · ${Math.round(m.tamanoBytes / 1024)} KB` : ''}{m.duracionMin ? ` · ${m.duracionMin} min` : ''}</span>
-                      {m.url && <Link to={m.url} target="_blank" rel="noreferrer">Abrir →</Link>}
-                    </div>
-                  ))}
-                </div>
-              )}
-              {esDocente && (
-                <form className="pg-form" onSubmit={subirMaterial} style={{ marginTop: 12 }}>
-                  <label className="pg-field">
-                    <span className="pg-label">Tipo de material</span>
-                    <select className="pg-select" value={materialTipo} onChange={(e) => setMaterialTipo(e.target.value)}>
-                      <option value="ARCHIVO">Archivo</option>
-                      <option value="VIDEO">Video (URL)</option>
-                    </select>
-                  </label>
-                  {materialTipo === 'ARCHIVO' ? (
-                    <label className="pg-field">
-                      <span className="pg-label">Archivo (PDF, DOCX o imagen, máx. 20 MB)</span>
-                      <input className="pg-input" type="file" onChange={(e) => setMaterialArchivo(e.target.files?.[0] ?? null)} />
-                    </label>
-                  ) : (
-                    <label className="pg-field">
-                      <span className="pg-label">URL del video</span>
-                      <input className="pg-input" type="url" value={materialUrl} onChange={(e) => setMaterialUrl(e.target.value)} placeholder="https://…" />
-                    </label>
-                  )}
-                  <label className="pg-field">
-                    <span className="pg-label">Nombre (opcional)</span>
-                    <input className="pg-input" value={materialNombre} onChange={(e) => setMaterialNombre(e.target.value)} placeholder="Guía de ecuaciones" />
-                  </label>
-                  {materialError && <p className="pg-error" role="alert">{materialError}</p>}
-                  <button type="submit" className="btn btn--primary" disabled={subiendo}>{subiendo ? 'Subiendo...' : 'Subir material'}</button>
-                </form>
-              )}
-            </section>
-          </aside>
         </div>
+      )}
+      {status === 'ready' && detalle && (
+        <>
+          <div className="pg-tabs" role="tablist" aria-label="Secciones de la clase" style={{ marginTop: 20 }}>
+            {[
+              { value: 'avisos', label: 'Avisos' },
+              { value: 'mensajes', label: 'Mensajes' },
+              { value: 'materiales', label: 'Materiales / Videos' },
+            ].map((t) => (
+              <button key={t.value} type="button" role="tab" aria-selected={tab === t.value} className={`pg-tab${tab === t.value ? ' is-active' : ''}`} onClick={() => setTab(t.value)}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {tab === 'avisos' && <AvisosClase claseId={clase.id} claseNombre={clase.nombre} esDocente={esDocente} />}
+          {tab === 'mensajes' && <ChatClase claseId={clase.id} claseNombre={clase.nombre} grupo={clase.grupo} />}
+          {tab === 'materiales' && <MaterialesSection claseId={clase.id} esDocente={esDocente} claseNombre={clase.nombre} />}
+        </>
       )}
     </>
   )
