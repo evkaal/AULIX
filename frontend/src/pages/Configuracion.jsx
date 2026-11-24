@@ -2,8 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { LogOut, RefreshCw, TriangleAlert, WifiOff } from 'lucide-react'
 import Avatar from '../components/Avatar'
 import ConfirmModal from '../components/ConfirmModal'
+import ThemeToggle from '../components/ThemeToggle'
 import { useAuth } from '../context/AuthContext'
 import { apiFetch } from '../services/authService'
+import { clearDemoData, loadExampleData } from '../services/mockApi'
+import { isDemo } from '../services/api'
 import { PASSWORD_RULES, validateStrongPassword } from '../services/validators'
 import '../styles/pages.css'
 
@@ -13,6 +16,12 @@ export default function Configuracion() {
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmBorrar, setConfirmBorrar] = useState(false)
+  const [confirmEjemplo, setConfirmEjemplo] = useState(false)
+  // Datos demo (v5, solo en modo demo): borrar deja todo vacío sin cerrar
+  // sesión; cargar ejemplo pone los datos de la demo anterior.
+  const doBorrarDemo = () => { clearDemoData(); window.location.reload() }
+  const doCargarEjemplo = () => { loadExampleData(); window.location.reload() }
 
   // Cambio de contraseña (POST /api/auth/change-password, con token).
   const [values, setValues] = useState({ actual: '', nueva: '', confirmar: '' })
@@ -121,6 +130,12 @@ export default function Configuracion() {
           </section>
 
           <section className="pg-profile">
+            <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>Apariencia</h2>
+            <p className="pg-hint">Elige cómo se ve Aulix. Se guarda en este navegador. &ldquo;Sistema&rdquo; sigue el modo claro u oscuro de tu dispositivo.</p>
+            <ThemeToggle variant="segmented" />
+          </section>
+
+          <section className="pg-profile">
             <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>Contraseña</h2>
             <form className="pg-form" onSubmit={handlePasswordSubmit} noValidate>
               {formError && (
@@ -198,6 +213,17 @@ export default function Configuracion() {
             </form>
           </section>
 
+          {isDemo() && (
+            <section className="pg-profile">
+              <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>Datos demo</h2>
+              <p className="pg-hint">Solo visible en modo demo. La demo arranca vacía para probar desde cero. Borra todo lo creado en este navegador, o carga los datos de ejemplo para ver cómo se ve lleno. Tu sesión sigue activa en ambos casos.</p>
+              <div className="pg-actions" style={{ flexWrap: 'wrap' }}>
+                <button type="button" className="btn btn--ghost btn-download" onClick={() => setConfirmBorrar(true)}>Borrar todos los datos demo</button>
+                <button type="button" className="btn btn--ghost" onClick={() => setConfirmEjemplo(true)}>Cargar datos de ejemplo</button>
+              </div>
+            </section>
+          )}
+
           <section className="pg-profile">
             <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>Sesión</h2>
             <p className="pg-hint">Si cierras sesión, tendrás que volver a iniciar sesión para acceder a tus clases.</p>
@@ -218,6 +244,23 @@ export default function Configuracion() {
         danger
         onCancel={() => setConfirmOpen(false)}
         onConfirm={logout}
+      />
+      <ConfirmModal
+        open={confirmBorrar}
+        title="¿Borrar todos los datos demo?"
+        message="Se borrarán las clases, tareas, calificaciones, mensajes, avisos y materiales creados en modo demo en este navegador. Todo quedará vacío, como al entrar por primera vez. Tu sesión seguirá activa."
+        confirmLabel="Borrar todo"
+        danger
+        onCancel={() => setConfirmBorrar(false)}
+        onConfirm={doBorrarDemo}
+      />
+      <ConfirmModal
+        open={confirmEjemplo}
+        title="¿Cargar datos de ejemplo?"
+        message="Se cargarán las clases, tareas, mensajes y videos de ejemplo de la demo anterior. Lo que hayas creado en modo demo se reemplazará."
+        confirmLabel="Cargar ejemplo"
+        onCancel={() => setConfirmEjemplo(false)}
+        onConfirm={doCargarEjemplo}
       />
     </>
   )

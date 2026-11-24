@@ -1,8 +1,16 @@
+// Login rediseñado (Aulix v2) — tarjeta blanca centrada, bordes muy
+// redondeados, fondo propio con gradiente azul marino → menta (colores de
+// Aulix, NO el morado/rosa de la imagen de referencia) y el logotipo
+// Aulix visible. La lógica es la misma de antes: validación bajo cada
+// campo en tiempo real y al enviar, "recordarme", recuperar contraseña,
+// registro y acceso rápido demo solo cuando VITE_DEMO_MODE=true.
 import { useRef, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Mail, LockKeyhole, Eye, EyeOff, ArrowRight, LoaderCircle, TriangleAlert, WifiOff, Info } from 'lucide-react'
 import FormField from '../components/FormField'
 import { useAuth } from '../context/AuthContext'
+import { DEMO_MODE } from '../services/authService'
+import { DEMO_USERS } from '../services/mockApi'
 import { validateEmail, validateLoginPassword } from '../services/validators'
 import logo from '../assets/logo-aulix.png'
 import '../styles/login.css'
@@ -43,8 +51,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [apiError, setApiError] = useState(null) // { message, type }
-  const [notice, setNotice] = useState('')
-  const [imageFailed, setImageFailed] = useState(false)
+  const [notice, setNotice] = useState(() => (new URLSearchParams(window.location.search).get('expirada') ? 'Tu sesión expiró. Inicia sesión de nuevo.' : ''))
 
   const emailRef = useRef(null)
   const passwordRef = useRef(null)
@@ -86,6 +93,7 @@ export default function Login() {
 
   const comingSoon = (feature) => () => setNotice(`${feature} estará disponible en la siguiente entrega.`)
 
+<<<<<<< HEAD
   /** Inicio con Google (Google Identity Services, flujo ID token).
    *  Se mantiene el botón propio con su estilo: no se usa el botón
    *  renderizado de Google. Al hacer clic se carga el script de Google,
@@ -132,67 +140,64 @@ export default function Login() {
       })
       .catch((err) => setApiError({ message: err.message, type: 'network' }))
       .finally(() => setGoogleLoading(false))
+=======
+  // Acceso rápido demo (solo VITE_DEMO_MODE=true): rellena una cuenta demo.
+  const entrarDemo = (correo) => {
+    const u = DEMO_USERS.find((x) => x.correo === correo)
+    if (!u) return
+    setValues({ email: u.correo, password: u.password })
+    setTouched({ email: true, password: true })
+>>>>>>> 9347d006ad88d7a9b9b410caf9a1cc252fbfb5d4
   }
 
   return (
-    <main className="login">
-      <section className="login__brand" aria-label="Bienvenida a Aulix">
-        <div className="brand-identity">
-          <span className="brand-identity__badge"><img src={logo} alt="" /></span>
-          <span className="brand-identity__name">Aulix</span>
-        </div>
+    <main className="login2">
+      <div className="login2__bg" aria-hidden="true">
+        <span className="login2__moon" />
+        <span className="login2__dune login2__dune--a" />
+        <span className="login2__dune login2__dune--b" />
+        <span className="login2__dune login2__dune--c" />
+      </div>
 
-        <div className="brand-promise">
-          <span className="brand-promise__tag">UN ESPACIO PARA CRECER JUNTOS</span>
-          <h1 className="brand-promise__title">
-            Tu clase, conectada.<br />El aprendizaje, sin límites.
-          </h1>
-        </div>
-
-        {!imageFailed && (
-          <div className="brand-illustration">
-            <img
-              src="/images/comunidad.png"
-              alt="Estudiantes colaborando alrededor de una mesa"
-              onError={() => setImageFailed(true)}
-            />
-          </div>
-        )}
-      </section>
-
-      <section className="login__access">
-        <div className="login__mobile-brand">
-          <img src={logo} alt="" />
+      <section className="login2__card" aria-label="Iniciar sesión en Aulix">
+        <div className="login2__logo">
+          <img src={logo} alt="Logotipo de Aulix" />
           <span>Aulix</span>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit} noValidate>
-          <header className="login-form__header">
-            <p className="login-form__eyebrow">BIENVENIDO A TU COMUNIDAD</p>
-            <h2 className="login-form__title">¡Qué gusto verte!</h2>
-            <p className="login-form__subtitle">Inicia sesión para continuar aprendiendo.</p>
-          </header>
+        <header className="login2__header">
+          <h1 className="login2__title">Login</h1>
+          <p className="login2__subtitle">¡Qué gusto verte! Tu clase, conectada.</p>
+        </header>
 
+<<<<<<< HEAD
           <button type="button" className="btn-google" onClick={handleGoogleLogin} disabled={loading || googleLoading}>
             <span className="btn-google__g" aria-hidden="true">G</span>
             {googleLoading ? 'Conectando con Google...' : 'Continuar con Google'}
           </button>
+=======
+        <button type="button" className="btn-google login2__google" onClick={comingSoon('El acceso con Google')}>
+          <span className="btn-google__g" aria-hidden="true">G</span>
+          Continuar con Google
+        </button>
+>>>>>>> 9347d006ad88d7a9b9b410caf9a1cc252fbfb5d4
 
-          <div className="divider"><span>o con tu correo</span></div>
+        <div className="divider"><span>o con tu correo</span></div>
 
-          {apiError && (
-            <div className="alert alert--error" role="alert">
-              {apiError.type === 'network' ? <WifiOff size={18} /> : <TriangleAlert size={18} />}
-              <span>{apiError.message}</span>
-            </div>
-          )}
-          {notice && (
-            <div className="alert alert--info" role="status">
-              <Info size={18} />
-              <span>{notice}</span>
-            </div>
-          )}
+        {apiError && (
+          <div className="alert alert--error" role="alert">
+            {apiError.type === 'network' ? <WifiOff size={18} /> : <TriangleAlert size={18} />}
+            <span>{apiError.message}</span>
+          </div>
+        )}
+        {notice && (
+          <div className="alert alert--info" role="status">
+            <Info size={18} />
+            <span>{notice}</span>
+          </div>
+        )}
 
+        <form className="login2__form" onSubmit={handleSubmit} noValidate>
           <FormField
             label="Correo electrónico"
             icon={Mail}
@@ -240,12 +245,12 @@ export default function Login() {
               <span className="check__box" aria-hidden="true" />
               Recordarme
             </label>
-            <button type="button" className="link link--sm" onClick={comingSoon('La recuperación de contraseña')}>
+            <button type="button" className="link link--sm" onClick={() => navigate('/recuperar')}>
               ¿Olvidaste tu contraseña?
             </button>
           </div>
 
-          <button type="submit" className="btn-primary" disabled={loading} aria-busy={loading}>
+          <button type="submit" className="btn-primary login2__submit" disabled={loading} aria-busy={loading}>
             {loading ? (
               <>
                 <LoaderCircle size={18} className="spin" aria-hidden="true" />
@@ -261,7 +266,7 @@ export default function Login() {
 
           <p className="login-form__register">
             ¿Aún no tienes cuenta?
-            <button type="button" className="link" onClick={() => navigate('/registro')}>Regístrate gratis</button>
+            <button type="button" className="link" onClick={() => navigate('/registro')}>Crear cuenta</button>
           </p>
 
           <p className="login-form__demo">
@@ -269,8 +274,20 @@ export default function Login() {
             <br />
             Estudiante: <strong>ana.sofia@colegio.edu</strong> / <strong>Estudiante123*</strong>
           </p>
+          {DEMO_MODE && (
+            <div className="demo-accounts" role="group" aria-label="Cuentas demo">
+              <p><strong>Modo demo sin backend.</strong> Elige una cuenta para entrar (contraseña: Demo123!):</p>
+              <div className="demo-accounts__row">
+                <button type="button" className="btn btn--ghost btn--sm" onClick={() => entrarDemo('admin@aulix.mx')}>Admin demo</button>
+                <button type="button" className="btn btn--ghost btn--sm" onClick={() => entrarDemo('docente@aulix.mx')}>Docente demo</button>
+                <button type="button" className="btn btn--ghost btn--sm" onClick={() => entrarDemo('alumno@aulix.mx')}>Estudiante demo</button>
+              </div>
+            </div>
+          )}
         </form>
       </section>
+
+      <p className="login2__foot">Aulix · Tu clase, conectada. El aprendizaje, sin límites.</p>
     </main>
   )
 }

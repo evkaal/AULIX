@@ -142,3 +142,67 @@
   .login-form__title { font-size: 26px; }
   .login-form__subtitle { font-size: 15px; }
 }
+
+/* ---------- Login nuevo (Aulix v2): tarjeta centrada, colores Aulix ----------
+   Referencia de Jonathan: tarjeta blanca centrada con bordes muy
+   redondeados sobre un fondo ilustrado. Se mantiene la idea, pero con
+   azul marino + menta de Aulix (no morado/rosa) y el logo del proyecto.
+   Registro y Recuperar siguen usando el layout viejo (.login), intacto. */
+.login2 {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px 16px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0b3d6e 0%, #086ac5 42%, #0ea47a 100%);
+}
+.login2__bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.login2__bg::before, .login2__bg::after {
+  content: ''; position: absolute; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+.login2__bg::before { width: 340px; height: 340px; top: -120px; right: -80px; }
+.login2__bg::after { width: 220px; height: 220px; bottom: 12%; left: -70px; }
+.login2__moon {
+  position: absolute; top: 9%; right: 16%;
+  width: 74px; height: 74px; border-radius: 50%;
+  background: #fef3c7; box-shadow: 0 0 40px rgba(254, 243, 199, 0.55);
+}
+.login2__dune { position: absolute; left: -10%; width: 120%; height: 340px; border-radius: 50% 50% 0 0; }
+.login2__dune--a { bottom: -190px; background: #0a2f52; opacity: 0.85; transform: rotate(-4deg); }
+.login2__dune--b { bottom: -230px; background: #0d5c46; opacity: 0.8; transform: rotate(3deg); }
+.login2__dune--c { bottom: -260px; background: #083a2e; opacity: 0.7; }
+.login2__card {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 440px;
+  background: #fff; border-radius: 28px;
+  padding: 28px 28px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+  box-shadow: 0 24px 60px rgba(4, 32, 64, 0.45);
+}
+.login2__logo { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 26px; font-weight: 800; color: #0b3d6e; }
+.login2__logo img { height: 44px; width: auto; }
+.login2__header { text-align: center; display: flex; flex-direction: column; gap: 4px; }
+.login2__title { margin: 0; font-size: 30px; font-weight: 800; line-height: 1.2; color: var(--ink); }
+.login2__subtitle { margin: 0; font-size: 14px; color: var(--muted); }
+.login2__google { border-radius: 100px; }
+.login2__form { display: flex; flex-direction: column; gap: 14px; }
+/* Campos color menta, muy redondeados, solo dentro del login nuevo. */
+.login2 .field__control { background: #e6f7f1; border: 1px solid #bfe8db; border-radius: 100px; height: 50px; }
+.login2 .field__control:focus-within { border-color: #0ea47a; box-shadow: 0 0 0 3px rgba(14, 164, 122, 0.18); }
+.login2 .field__control--error, .login2 .field__control--error:focus-within { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(217, 63, 63, 0.12); }
+.login2 .field__icon { color: #0a7a5c; }
+.login2__submit { border-radius: 100px; background: #0b3d6e; height: 50px; }
+.login2__submit:hover:not(:disabled) { background: #086ac5; }
+.login2__foot { position: relative; z-index: 1; margin: 0; font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.9); text-align: center; }
+@media (max-width: 520px) {
+  .login2 { padding: 0; gap: 0; justify-content: flex-start; }
+  .login2__bg { display: none; }
+  .login2__card { max-width: none; min-height: 100dvh; border-radius: 0; padding: 28px 20px 24px; box-shadow: none; justify-content: center; }
+  .login2__foot { display: none; }
+  .login2__moon { display: none; }
+}

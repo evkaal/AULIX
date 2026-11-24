@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Navbar from './Navbar'
+import ErrorBoundary from '../ErrorBoundary'
 import Sidebar from './Sidebar'
 import '../../styles/layout.css'
 
@@ -15,7 +16,9 @@ export default function AppLayout() {
       <div className="app__body">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="app__content">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

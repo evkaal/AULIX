@@ -47,20 +47,35 @@ export default function VistaPreviaEntrega() {
 
   useEffect(() => { load() }, [load])
 
-  // Vista previa del archivo: se pide como Blob con Bearer (un <iframe> o
-  // <img> directo daría 401) y se muestra según su tipo real.
+  // Vista previa del archivo.
+  // v9 (bug 1): primero se usa el contenido que ya trae la entrega
+  // (archivoContenido: data URL guardada en demo al entregar; archivoUrl
+  // si el backend la devuelve). Solo si no hay contenido se pide el Blob
+  // con Bearer (un <iframe> o <img> directo daría 401). Antes siempre se
+  // pedía el Blob y en demo apiFetchBlob lanzaba error siempre, así que
+  // una imagen JPG de 40 KB salía como "No se pudo cargar la vista previa".
   useEffect(() => {
     if (!entrega?.archivoNombre) return
+    setPreviewError('')
+    setPreviewUrl(null)
+    setPreviewKind(null)
+    const tipo = entrega.archivoTipo || ''
+    const nombre = (entrega.archivoNombre || '').toLowerCase()
+    const kind = tipo.startsWith('image/') || /\.(png|jpe?g|gif|webp)$/.test(nombre)
+      ? 'image'
+      : tipo === 'application/pdf' || /\.pdf$/.test(nombre) ? 'pdf' : null
+    const directo = entrega.archivoContenido || entrega.archivoUrl || null
+    if (directo) { setPreviewKind(kind); setPreviewUrl(directo); return undefined }
+    if (!kind) return undefined
     let url = null
     let cancelado = false
     apiFetchBlob(`/entregas/${entrega.id}/archivo`)
       .then((blob) => {
         if (cancelado) return
         url = URL.createObjectURL(blob)
-        const tipo = blob.type || entrega.archivoTipo || ''
-        const nombre = (entrega.archivoNombre || '').toLowerCase()
-        if (tipo.startsWith('image/') || /\.(png|jpe?g|gif|webp)$/.test(nombre)) setPreviewKind('image')
-        else if (tipo === 'application/pdf' || /\.pdf$/.test(nombre)) setPreviewKind('pdf')
+        const tipoBlob = blob.type || entrega.archivoTipo || ''
+        if (tipoBlob.startsWith('image/') || /\.(png|jpe?g|gif|webp)$/.test(nombre)) setPreviewKind('image')
+        else if (tipoBlob === 'application/pdf' || /\.pdf$/.test(nombre)) setPreviewKind('pdf')
         else setPreviewKind(null)
         setPreviewUrl(url)
       })
@@ -150,7 +165,7 @@ export default function VistaPreviaEntrega() {
                     </div>
                   )}
                   {previewKind === 'image' && previewUrl && (
-                    <img src={previewUrl} alt={`Documento entregado: ${entrega.archivoNombre}`} style={{ maxWidth: '100%', border: '1px solid var(--border)', borderRadius: 8 }} />
+                    <img src={previewUrl} alt={`Documento entregado: ${entrega.archivoNombre}`} style={{ display: 'block', maxWidth: '100%', height: 'auto', objectFit: 'contain', border: '1px solid var(--border)', borderRadius: 8 }} />
                   )}
                   {previewKind === 'pdf' && previewUrl && (
                     <iframe src={previewUrl} title={`Vista previa de ${entrega.archivoNombre}`} style={{ width: '100%', height: 560, border: '1px solid var(--border)', borderRadius: 8 }} />
@@ -161,7 +176,7 @@ export default function VistaPreviaEntrega() {
                   <div className="pg-actions" style={{ marginTop: 12 }}>
                     <button
                       type="button"
-                      className="btn btn--ghost btn--sm"
+                      className="btn btn--ghost btn--sm btn-download"
                       onClick={() => apiDownload(`/entregas/${entrega.id}/archivo`, entrega.archivoNombre).catch(() => {})}
                     >
                       <Download size={14} /> Descargar {entrega.archivoNombre}
@@ -183,7 +198,8 @@ export default function VistaPreviaEntrega() {
                     </p>
                     <p className="pg-hint">{entrega.estudianteNombre} recibió {entrega.nota}/10 en {entrega.tareaTitulo}.</p>
                     <div className="pg-actions">
-                      <Link className="btn btn--primary" to="/calificaciones">Volver a calificaciones</Link>
+                      <Link className="btn btn--primary" to="/calificaciones/guardada" state={{ estudianteNombre: entrega.estudianteNombre, nota: entrega.nota, tareaTitulo: entrega.tareaTitulo, comentario }}>Ver pantalla de confirmación</Link>
+                      <Link className="btn btn--ghost" to="/calificaciones">Volver a calificaciones</Link>
                     </div>
                   </div>
                 ) : (

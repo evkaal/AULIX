@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { House, BookOpen, ClipboardList, ChartNoAxesCombined, CalendarDays, MessageCircle, Settings } from 'lucide-react'
+import { House, BookOpen, ClipboardList, ChartNoAxesCombined, CalendarDays, MessageCircle, Settings, Users } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { apiFetch } from '../../services/authService'
 
@@ -55,6 +55,8 @@ export default function Sidebar({ open, onClose }) {
     { to: '/calendario', label: 'Calendario', icon: CalendarDays },
     { to: '/mensajes', label: 'Mensajes', icon: MessageCircle, badge: badges.mensajes },
   ]
+  // Usuarios solo existe en modo demo (backend real sin /api/usuarios ni ADMIN).
+  if (user?.rol === 'ADMIN') links.push({ to: '/usuarios', label: 'Usuarios', icon: Users })
 
   return (
     <>

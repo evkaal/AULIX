@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, RefreshCw, WifiOff } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiFetch } from '../services/authService'
-import { fmtFecha, fmtHora, toDatetimeLocal } from '../utils/format'
+import { derivarEstadoTarea, fmtFecha, fmtHora, toDatetimeLocal } from '../utils/format'
 import '../styles/pages.css'
 
 const DIAS_SEMANA = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM']
@@ -94,7 +94,9 @@ export default function Calendario() {
           fechaActivacion: prog.fechaActivacion || null,
           fechaVencimiento: prog.fechaVencimiento || null,
           activacionAutomatica: prog.activacionAutomatica,
-          estado: prog.estado,
+          // BUG CORREGIDO (v7): una activación futura con estado ACTIVA se
+          // guardaba como activa; ahora se deriva a PROGRAMADA.
+          estado: derivarEstadoTarea(prog),
         }),
       })
       setProgOk(true)
@@ -157,6 +159,10 @@ export default function Calendario() {
           <span>No pudimos cargar el calendario. {error}</span>
           <button type="button" className="btn btn--ghost btn--sm" onClick={load}><RefreshCw size={14} /> Reintentar</button>
         </div>
+      )}
+
+      {status === 'ready' && eventos.length === 0 && (
+        <p className="pg-empty">Aún no tienes eventos en el calendario. Cuando se publique una tarea con fecha de entrega, aparecerá aquí.</p>
       )}
 
       {status === 'ready' && (
@@ -228,7 +234,7 @@ export default function Calendario() {
                         fechaActivacion: t ? toDatetimeLocal(t.fechaActivacion) : p.fechaActivacion,
                         fechaVencimiento: t ? toDatetimeLocal(t.fechaVencimiento) : p.fechaVencimiento,
                         activacionAutomatica: t?.activacionAutomatica ?? p.activacionAutomatica,
-                        estado: t?.estado ?? p.estado,
+                        estado: t ? derivarEstadoTarea({ ...t, fechaActivacion: toDatetimeLocal(t.fechaActivacion) }) : p.estado,
                       }))
                     }}>
                       <option value="">Elige una tarea…</option>

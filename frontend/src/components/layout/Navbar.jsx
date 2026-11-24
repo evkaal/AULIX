@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Bell, ChevronDown, LogOut, Menu, UserRound } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Avatar from '../Avatar'
 import ConfirmModal from '../ConfirmModal'
+import ThemeToggle from '../ThemeToggle'
+import logoAulix from '../../assets/logo-aulix.png'
 
 export default function Navbar({ onMenuClick }) {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const ref = useRef(null)
@@ -27,10 +31,11 @@ export default function Navbar({ onMenuClick }) {
       <button type="button" className="icon-btn navbar__menu" onClick={onMenuClick} aria-label="Abrir menú">
         <Menu size={22} />
       </button>
-      <span className="navbar__brand">Aulix</span>
+      <span className="navbar__brand"><img src={logoAulix} alt="Logo de Aulix" className="navbar__logo" />Aulix</span>
 
       <div className="navbar__account">
-        <button type="button" className="icon-btn" aria-label="Notificaciones">
+        <ThemeToggle />
+        <button type="button" className="icon-btn" aria-label="Ver mensajes" title="Ver mensajes" onClick={() => navigate('/mensajes')}>
           <Bell size={20} />
         </button>
         <span className="navbar__sep" aria-hidden="true" />
@@ -46,7 +51,7 @@ export default function Navbar({ onMenuClick }) {
             <Avatar name={user?.nombre} src={user?.avatar} />
             <span className="profile__info">
               <span className="profile__name">{user?.nombre}</span>
-              <span className="profile__role">{user?.rol === 'ESTUDIANTE' ? 'Estudiante' : 'Docente'}</span>
+              <span className="profile__role">{user?.rol === 'ESTUDIANTE' ? 'Estudiante' : user?.rol === 'ADMIN' ? 'Administrador' : 'Docente'}</span>
             </span>
             <ChevronDown size={16} className={`profile__chevron${open ? ' is-open' : ''}`} />
           </button>
@@ -60,7 +65,7 @@ export default function Navbar({ onMenuClick }) {
                   <span title={user?.correo}>{user?.correo}</span>
                 </div>
               </div>
-              <button type="button" role="menuitem" className="menu__item" onClick={() => setOpen(false)}>
+              <button type="button" role="menuitem" className="menu__item" onClick={() => { setOpen(false); navigate('/perfil') }}>
                 <UserRound size={17} /> Mi perfil
               </button>
               <button type="button" role="menuitem" className="menu__item menu__item--danger" onClick={() => { setOpen(false); setConfirmOpen(true) }}>

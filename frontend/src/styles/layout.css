@@ -21,6 +21,11 @@
 .btn--ghost { background: #fff; color: var(--ink); border-color: var(--border-strong); }
 .btn--ghost:hover:not(:disabled) { background: #f7f9fc; }
 .btn--danger { background: var(--danger); color: #fff; }
+/* Botón de descarga uniforme (v5, estilo Material Design con lucide
+   `Download`): redondeado, icono + texto "Descargar", igual en Materiales,
+   videos, entregas y adjuntos de mensajes. */
+.btn-download { border-radius: 999px; gap: 6px; }
+.btn-download svg { flex-shrink: 0; }
 .btn--danger:hover:not(:disabled) { background: #bf3030; }
 .icon-btn { display: inline-grid; place-items: center; padding: 6px; border: 0; background: none; color: var(--muted); border-radius: 8px; cursor: pointer; }
 .icon-btn:hover { color: var(--ink); background: rgba(22, 117, 209, 0.08); }
@@ -34,7 +39,8 @@
 
 /* ---------- Navbar ---------- */
 .navbar { position: sticky; top: 0; z-index: 30; height: 80px; display: flex; align-items: center; gap: 12px; padding: 0 28px; background: #fff; border-bottom: 1px solid var(--border); }
-.navbar__brand { font-size: 27px; font-weight: 800; color: var(--navy); line-height: 1.4; }
+.navbar__brand { display: inline-flex; align-items: center; gap: 8px; font-size: 27px; font-weight: 800; color: var(--navy); line-height: 1.4; }
+.navbar__logo { height: 32px; width: auto; display: block; }
 .navbar__menu { display: none; margin-left: -8px; color: var(--ink); }
 .navbar__account { margin-left: auto; display: flex; align-items: center; gap: 18px; }
 .navbar__sep { width: 1px; height: 28px; background: var(--border); }
