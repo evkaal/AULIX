@@ -262,9 +262,7 @@ export default function Login() {
           </p>
 
           <p className="login-form__demo">
-            Docente: <strong>laura@colegio.edu</strong> / <strong>Docente123*</strong>
-            <br />
-            Estudiante: <strong>ana.sofia@colegio.edu</strong> / <strong>Estudiante123*</strong>
+           
           </p>
           {DEMO_MODE && (
             <div className="demo-accounts" role="group" aria-label="Cuentas demo">
