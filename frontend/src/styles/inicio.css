@@ -46,3 +46,10 @@
   .page-date { font-size: 13px; }
   .feed__item, .feed__composer { padding: 14px; }
 }
+
+/* Menú de tres puntos de la tarjeta de clase (v7): antes no hacía nada. */
+.class-card__menu { position: relative; flex-shrink: 0; }
+.class-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 190px; background: #fff; border: 1px solid var(--border, #e5e7eb); border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14); padding: 6px; display: flex; flex-direction: column; }
+.class-menu a { padding: 9px 10px; border-radius: 6px; color: var(--ink, #111827); text-decoration: none; font-size: 14px; }
+.class-menu a:hover { background: rgba(22, 117, 209, 0.08); }
+.class-menu__backdrop { position: fixed; inset: 0; z-index: 19; background: transparent; border: 0; padding: 0; cursor: default; }

@@ -1,0 +1,184 @@
+/* Aulix v8 — MODO OSCURO (claro / oscuro / sistema).
+   Se activa con data-theme="dark" en <html> (ver src/theme.js). Solo CSS:
+   no toca el backend, no anade dependencias y no cambia el build.
+   Reglas:
+   - Las variables de color se redefinen en oscuro; casi todo el CSS usa
+     esas variables, asi que la mayoria de pantallas cambia sola.
+   - Lo que tenia un color fijo (#fff, #0b0b0c, pasteles) se sobrescribe
+     aqui por clase. Los badges de estado conservan su pastel claro con
+     texto oscuro: se leen igual sobre fondo oscuro.
+   - Contraste: texto principal #e8eef5 sobre #0b1220 / #141d2e, secundario
+     #a9b8ca (mas claro que el --muted de claro para compensar el fondo). */
+
+html[data-theme="dark"] { color-scheme: dark; }
+
+html[data-theme="dark"] {
+  --bg: #0b1220;
+  --ink: #e8eef5;
+  --muted: #a9b8ca;
+  --border: #263448;
+  --border-strong: #3a4c63;
+  --blue-50: #132a44;
+  --blue-600: #1675d1;
+  --blue-700: #1062b5;
+  --blue-900: #086ac5;
+  --green-50: #122a1e;
+  --green-700: #63c795;
+  --purple-50: #251a3d;
+  --purple-700: #b79df0;
+  --navy: #dbe7f5;
+  --danger: #ff9a9a;
+  --danger-bg: #3a1d1d;
+  --info-bg: #132a44;
+  --mint: #122a1e;
+  --mint-700: #63c795;
+}
+
+html[data-theme="dark"] body { background: #0b1220; color: var(--ink); }
+html[data-theme="dark"] .app { background: var(--bg); }
+
+/* --- Superficies blancas -> superficie oscura --- */
+html[data-theme="dark"] .navbar,
+html[data-theme="dark"] .sidebar,
+html[data-theme="dark"] .menu,
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] .class-menu,
+html[data-theme="dark"] .btn--ghost,
+html[data-theme="dark"] .pg-form-panel,
+html[data-theme="dark"] .pg-kpi,
+html[data-theme="dark"] .pg-card,
+html[data-theme="dark"] .pg-table-wrap,
+html[data-theme="dark"] .pg-search,
+html[data-theme="dark"] .pg-input,
+html[data-theme="dark"] .pg-select,
+html[data-theme="dark"] .pg-textarea,
+html[data-theme="dark"] .pg-check,
+html[data-theme="dark"] .pg-empty,
+html[data-theme="dark"] .pg-conv-list,
+html[data-theme="dark"] .pg-conv,
+html[data-theme="dark"] .pg-chat,
+html[data-theme="dark"] .pg-cal,
+html[data-theme="dark"] .pg-cal__day,
+html[data-theme="dark"] .pg-day-panel,
+html[data-theme="dark"] .pg-profile,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .table-wrap,
+html[data-theme="dark"] .search,
+html[data-theme="dark"] .select,
+html[data-theme="dark"] .textarea,
+html[data-theme="dark"] .stat,
+html[data-theme="dark"] .list-card,
+html[data-theme="dark"] .center-card,
+html[data-theme="dark"] .calendar__day,
+html[data-theme="dark"] .empty,
+html[data-theme="dark"] .theme-icon,
+html[data-theme="dark"] .material-card,
+html[data-theme="dark"] .feed,
+html[data-theme="dark"] .class-card,
+html[data-theme="dark"] .btn-google,
+html[data-theme="dark"] .field__control,
+html[data-theme="dark"] .check__box,
+html[data-theme="dark"] .login2__card,
+html[data-theme="dark"] .msg-linkpreview,
+html[data-theme="dark"] .theme-custom__exact input[type="color"] {
+  background: #141d2e;
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .pg-chat__composer input[type="text"],
+html[data-theme="dark"] .avisos-form input,
+html[data-theme="dark"] .chat__composer input,
+html[data-theme="dark"] .pg-search input,
+html[data-theme="dark"] .search input,
+html[data-theme="dark"] .field__input {
+  background: transparent;
+  color: var(--ink);
+}
+
+/* --- Textos con color fijo en claro --- */
+html[data-theme="dark"] .page-subtitle,
+html[data-theme="dark"] .class-card__info,
+html[data-theme="dark"] .feed__detail,
+html[data-theme="dark"] .login__mobile-brand { color: var(--muted); }
+html[data-theme="dark"] .feed__input::placeholder { color: var(--muted); opacity: 1; }
+html[data-theme="dark"] .login2__logo { color: #e8eef5; }
+
+/* --- Azul de texto/iconos: en oscuro el #1675d1 no se lee; se aclara --- */
+html[data-theme="dark"] a,
+html[data-theme="dark"] .link,
+html[data-theme="dark"] .back-link,
+html[data-theme="dark"] .msg-link,
+html[data-theme="dark"] .section-head a,
+html[data-theme="dark"] .avatar,
+html[data-theme="dark"] .badge,
+html[data-theme="dark"] .sidebar__link.is-active,
+html[data-theme="dark"] .sidebar__badge,
+html[data-theme="dark"] .feed__image,
+html[data-theme="dark"] .chat-icon,
+html[data-theme="dark"] .stat,
+html[data-theme="dark"] .chat__bubble strong,
+html[data-theme="dark"] .msg-linkpreview__icon,
+html[data-theme="dark"] .msg-linkpreview__open,
+html[data-theme="dark"] .material-card__icon,
+html[data-theme="dark"] .pg-msg__file,
+html[data-theme="dark"] .alert--info,
+html[data-theme="dark"] .calendar__day em { color: #8abbf0; }
+html[data-theme="dark"] .btn-google__g,
+html[data-theme="dark"] .login-form__eyebrow { color: #8abbf0; }
+
+/* --- Estados activos / seleccionados --- */
+html[data-theme="dark"] .pg-tab { color: #a9b8ca; }
+html[data-theme="dark"] .pg-tab:hover { color: var(--ink); }
+html[data-theme="dark"] .pg-tab.is-active,
+html[data-theme="dark"] .pg-conv.is-selected,
+html[data-theme="dark"] .pg-msg.is-mine .pg-msg__bubble,
+html[data-theme="dark"] .pg-cal__day.is-selected,
+html[data-theme="dark"] .theme-icon.is-selected,
+html[data-theme="dark"] .chat__msg.is-mine .chat__bubble { background: var(--blue-50); }
+html[data-theme="dark"] .pg-msg__bubble { background: #1a2639; }
+html[data-theme="dark"] .chat__bubble { background: #1a2639; }
+
+/* --- Hovers claros -> oscuros --- */
+html[data-theme="dark"] .btn--ghost:hover:not(:disabled),
+html[data-theme="dark"] .btn-google:hover,
+html[data-theme="dark"] .menu__item:hover,
+html[data-theme="dark"] .sidebar__link:hover,
+html[data-theme="dark"] .sidebar__settings:hover,
+html[data-theme="dark"] .pg-conv:hover,
+html[data-theme="dark"] .pg-table tbody tr.is-clickable:hover,
+html[data-theme="dark"] .list-card:hover,
+html[data-theme="dark"] .class-menu a:hover,
+html[data-theme="dark"] .theme-icon:hover,
+html[data-theme="dark"] .icon-btn:hover,
+html[data-theme="dark"] .profile__trigger:hover { background: #1d2a3f; }
+
+/* --- Alertas --- */
+html[data-theme="dark"] .pg-alert,
+html[data-theme="dark"] .alert--error { background: #3a1d1d; color: #ffb4b4; border-color: #5b2a2a; }
+html[data-theme="dark"] .pg-alert--info,
+html[data-theme="dark"] .alert--info { background: #132a44; color: #9cc4ee; border-color: #24466b; }
+html[data-theme="dark"] .demo-banner { background: #2a2210; color: #f5d67a; border-color: #5a4a1a; }
+html[data-theme="dark"] .demo-banner code { background: rgba(255, 255, 255, 0.12); }
+
+/* --- Avisos, calendario, chat --- */
+html[data-theme="dark"] .aviso { background: #122a1e; border-color: #1e4632; }
+html[data-theme="dark"] .pg-cal__day.is-other { background: #0f1726; color: #7c8da3; }
+html[data-theme="dark"] .pg-cal__event { background: #132a44; color: #8abbf0; }
+html[data-theme="dark"] .pg-cal__event--vencimiento { background: #2a2210; color: #f5d67a; }
+html[data-theme="dark"] .pg-cal__event--clase { background: #122a1e; color: #63c795; }
+html[data-theme="dark"] .feed__input:focus { background: #141d2e; }
+html[data-theme="dark"] .skeleton { background: linear-gradient(90deg, #1a2639 25%, #22314a 50%, #1a2639 75%); background-size: 200% 100%; }
+
+/* --- Login nuevo: campos menta -> superficie oscura --- */
+html[data-theme="dark"] .login2 .field__control { background: #16283a; border-color: #24466b; }
+html[data-theme="dark"] .login2 .field__icon { color: #5ec98f; }
+html[data-theme="dark"] .login2__submit { background: #0b3d6e; }
+html[data-theme="dark"] .login2__submit:hover:not(:disabled) { background: #086ac5; }
+
+/* --- Interruptor de tema --- */
+.theme-toggle { display: inline-flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); }
+.theme-toggle__btn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.theme-toggle__btn:hover { color: var(--ink); }
+.theme-toggle__btn.is-active { background: var(--blue-50); color: #8abbf0; }
+html[data-theme="light"] .theme-toggle__btn.is-active { color: #0f5fa8; }
