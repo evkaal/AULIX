@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.aulix.aulix.dto.AuthResponse;
 import com.aulix.aulix.dto.ChangePasswordRequest;
+import com.aulix.aulix.dto.GoogleLoginRequest;
 import com.aulix.aulix.dto.LoginRequest;
 import com.aulix.aulix.dto.RegisterRequest;
 import com.aulix.aulix.dto.UserResponse;
@@ -37,6 +38,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    /** Inicio de sesión con Google: recibe el ID token de Google Identity
+     *  Services y devuelve { token, user } igual que el login normal.
+     *  Queda público por /api/auth/** en SecurityConfig. */
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request.idToken()));
     }
 
     @GetMapping("/me")

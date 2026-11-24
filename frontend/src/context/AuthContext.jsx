@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, useCallback } from 'react'
-import { login as loginRequest, register as registerRequest } from '../services/authService'
+import { login as loginRequest, loginWithGoogle as loginWithGoogleRequest, register as registerRequest } from '../services/authService'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'aulix_session'
@@ -30,6 +30,14 @@ export function AuthProvider({ children }) {
     return saveSession(data, remember)
   }, [saveSession])
 
+  /** Inicio con Google: envía el ID token y guarda la sesión con
+   *  saveSession igual que login() (localStorage si remember, si no
+   *  sessionStorage). */
+  const loginWithGoogle = useCallback(async ({ idToken, remember }) => {
+    const data = await loginWithGoogleRequest(idToken)
+    return saveSession(data, remember)
+  }, [saveSession])
+
   /** Registro: crea el usuario en el backend (POST /api/auth/register) y
    *  deja la sesión guardada igual que el login. El registro no usa
    *  "Recordarme": la sesión queda en sessionStorage. */
@@ -45,8 +53,8 @@ export function AuthProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ user: session?.user ?? null, token: session?.token ?? null, isAuthenticated: !!session?.token, login, register, logout }),
-    [session, login, register, logout],
+    () => ({ user: session?.user ?? null, token: session?.token ?? null, isAuthenticated: !!session?.token, login, loginWithGoogle, register, logout }),
+    [session, login, loginWithGoogle, register, logout],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

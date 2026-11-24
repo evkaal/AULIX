@@ -9,8 +9,29 @@ import '../styles/login.css'
 
 const validators = { email: validateEmail, password: validateLoginPassword }
 
+/** Carga el script de Google Identity Services bajo demanda (una sola vez
+ *  por carga de página). Si falla, la promesa se rechaza y se puede reintentar. */
+let googleScriptPromise = null
+function loadGoogleScript() {
+  if (window.google?.accounts?.id) return Promise.resolve()
+  if (googleScriptPromise) return googleScriptPromise
+  googleScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = () => resolve()
+    script.onerror = () => {
+      googleScriptPromise = null
+      reject(new Error('No se pudo cargar el inicio de sesión con Google. Revisa tu conexión e inténtalo de nuevo.'))
+    }
+    document.head.appendChild(script)
+  })
+  return googleScriptPromise
+}
+
 export default function Login() {
-  const { login, isAuthenticated } = useAuth()
+  const { login, loginWithGoogle, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const redirectTo = location.state?.from?.pathname ?? '/inicio'
@@ -20,6 +41,7 @@ export default function Login() {
   const [remember, setRemember] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [apiError, setApiError] = useState(null) // { message, type }
   const [notice, setNotice] = useState('')
   const [imageFailed, setImageFailed] = useState(false)
@@ -64,6 +86,54 @@ export default function Login() {
 
   const comingSoon = (feature) => () => setNotice(`${feature} estará disponible en la siguiente entrega.`)
 
+  /** Inicio con Google (Google Identity Services, flujo ID token).
+   *  Se mantiene el botón propio con su estilo: no se usa el botón
+   *  renderizado de Google. Al hacer clic se carga el script de Google,
+   *  se abre el selector de cuenta y el ID token va al backend. */
+  const handleGoogleLogin = () => {
+    setNotice('')
+    setApiError(null)
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    if (!clientId) {
+      setNotice('El inicio con Google no está configurado')
+      return
+    }
+    setGoogleLoading(true)
+    loadGoogleScript()
+      .then(() => {
+        if (!window.google?.accounts?.id) {
+          throw new Error('No se pudo cargar el inicio de sesión con Google. Revisa tu conexión e inténtalo de nuevo.')
+        }
+        return new Promise((resolve) => {
+          let settled = false
+          const done = () => { if (!settled) { settled = true; resolve() } }
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: async (response) => {
+              try {
+                await loginWithGoogle({ idToken: response.credential, remember })
+                navigate(redirectTo, { replace: true })
+              } catch (err) {
+                setApiError({ message: err.message, type: err.type })
+              } finally {
+                done()
+              }
+            },
+          })
+          window.google.accounts.id.prompt((notification) => {
+            if (notification.isNotDisplayed()) {
+              setNotice('No se pudo mostrar la ventana de Google. Inténtalo de nuevo en unos minutos o en otro navegador.')
+              done()
+            } else if (notification.isSkippedMoment() || notification.isDismissedMoment()) {
+              done() // el usuario cerró la ventana: no es un error
+            }
+          })
+        })
+      })
+      .catch((err) => setApiError({ message: err.message, type: 'network' }))
+      .finally(() => setGoogleLoading(false))
+  }
+
   return (
     <main className="login">
       <section className="login__brand" aria-label="Bienvenida a Aulix">
@@ -103,9 +173,9 @@ export default function Login() {
             <p className="login-form__subtitle">Inicia sesión para continuar aprendiendo.</p>
           </header>
 
-          <button type="button" className="btn-google" onClick={comingSoon('El acceso con Google')}>
+          <button type="button" className="btn-google" onClick={handleGoogleLogin} disabled={loading || googleLoading}>
             <span className="btn-google__g" aria-hidden="true">G</span>
-            Continuar con Google
+            {googleLoading ? 'Conectando con Google...' : 'Continuar con Google'}
           </button>
 
           <div className="divider"><span>o con tu correo</span></div>

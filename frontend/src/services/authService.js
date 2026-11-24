@@ -53,6 +53,13 @@ export async function login({ email, password }) {
   return { token: data.token, user: data.user }
 }
 
+/** Inicio de sesión con Google: envía el ID token de Google Identity
+ *  Services y recibe { token, user } igual que el login normal. */
+export async function loginWithGoogle(idToken) {
+  const data = await post('/google', { idToken })
+  return { token: data.token, user: data.user }
+}
+
 export async function register({ nombre, email, password, rol, grupo }) {
   const data = await post('/register', { nombre, email, password, rol, grupo })
   return { token: data.token, user: data.user }
