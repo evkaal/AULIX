@@ -369,7 +369,7 @@ Todas las rutas protegidas requieren el encabezado `Authorization: Bearer <token
 
 ---
 
-## 🧪 Pruebas con Bruno
+## Pruebas con Bruno
 
 El repositorio incluye la colección de **Bruno** versionada en `backend/bruno/` (36 peticiones: `auth`, `clases`, `tareas`, `entregas`, `calificaciones`, `mensajes`, `calendario`, `dashboard`, `archivos` + entornos `local` y `vps`):
 
@@ -378,28 +378,7 @@ El repositorio incluye la colección de **Bruno** versionada en `backend/bruno/`
 3. Elegir el entorno (`local` o `vps`).
 4. Empezar por `auth/login-docente`, que guarda el token JWT para el resto de las peticiones; `auth/sin-token` comprueba el caso de error `401` sin token.
 
----
 
-##  Paleta de Colores
-
-Paleta propia del proyecto (del prototipo de Figma, aplicada en el frontend). Azul marino como color principal y menta como color secundario.
-
-| Color | Hex | Uso |
-| :--- | :--- | :--- |
-| Azul principal | `#0F5FA8` | Color primario: botones, enlaces, pestaña activa, Matemáticas |
-| Azul | `#1062B5` | Variante del primario |
-| Azul claro | `#EAF4FF` | Fondos suaves de tarjetas y secciones azules |
-| Verde | `#1B6B57` | Ciencias: acento secundario, estados positivos |
-| Verde claro (menta) | `#EAF7F1` | Fondos suaves de secciones verdes |
-| Morado | `#5F4C9E` | Lengua y Literatura |
-| Morado claro | `#F1EDFA` | Fondos suaves de secciones moradas |
-| Ámbar | `#8A5A12` | Avisos y acentos cálidos |
-| Ámbar claro | `#FFF5E3` | Fondos suaves de avisos |
-| Rojo | `#A42828` | Errores y acciones destructivas |
-| Rojo claro | `#FDEEEE` | Fondos suaves de errores |
-| Gris pizarra | `#5A6B80` | Texto principal |
-| Gris suave | `#8A9AAD` | Texto secundario |
-| Fondo | `#F4F7FB` | Fondo general de la aplicación |
 
 **Justificación (teoría del color):** la paleta es una armonía análoga fría (azules y verdes). El azul es el color de la confianza y la calma, adecuado para un entorno escolar donde el alumno debe sentirse seguro; el verde menta transmite crecimiento y aprendizaje, y el morado aporta creatividad, por eso identifica a Lengua y Literatura. Cada materia tiene su propio color (Matemáticas azul, Ciencias verde, Lengua morado), así el estudiante identifica de un vistazo a qué clase pertenece cada tarjeta o tarea sin leer el texto. El texto principal es gris pizarra (`#5A6B80`) sobre fondos casi blancos (`#F4F7FB`), con contraste alto para que se lea bien en móvil y en escritorio; el rojo solo se usa para errores y acciones destructivas, nunca como color decorativo, para que no pierda su significado de alerta.
 
