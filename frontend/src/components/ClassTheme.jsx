@@ -4,7 +4,6 @@
 // personalizado se guarda tal cual como hexadecimal, ej. tema="#0EA47A",
 // y funciona en modo real sin cambiar el backend. Si el backend algún día
 // valida `tema` contra una lista, solo habrá que mapear el hex a un nombre.
-import { useRef, useState } from 'react'
 import {
   BookOpen, Brush, Calculator, Code2, Cpu, Dumbbell, FlaskConical, Globe,
   GraduationCap, Landmark, Languages, Leaf, Microscope, Music, Palette,
@@ -65,15 +64,6 @@ function hexToHsl(hex) {
   return [Math.round(h * 60), Math.round(s * 100), Math.round(l * 100)]
 }
 
-function hslToHex(h, s, l) {
-  s /= 100; l /= 100
-  const k = (n) => (n + h / 30) % 12
-  const a = s * Math.min(l, 1 - l)
-  const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
-  const to = (x) => Math.round(x * 255).toString(16).padStart(2, '0')
-  return `#${to(f(0))}${to(f(8))}${to(f(4))}`.toUpperCase()
-}
-
 function softBg(hex) {
   const [h, s, l] = hexToHsl(hex)
   return `hsl(${h}, ${Math.min(s, 70)}%, ${Math.min(Math.max(l + 38, 88), 94)}%)`
@@ -88,47 +78,6 @@ export function resolveClassTheme(claseOrTema) {
   }
   const preset = PALETTE.find((p) => p.value === tema) || PALETTE[0]
   return { hex: preset.hex, bg: softBg(preset.hex), fg: preset.hex, name: preset.label }
-}
-
-// Rueda de color radial: el docente mueve el punto sobre la rueda y elige
-// el tono; la saturación y luminosidad se fijan para que siempre se vea bien
-// en la tarjeta. También hay un input de color exacto debajo.
-function ColorWheel({ value, onChange }) {
-  const ref = useRef(null)
-  const [hue, setHue] = useState(() => hexToHsl(value?.startsWith('#') ? value : '#1675D1')[0])
-  const pick = (e) => {
-    const el = ref.current
-    if (!el) return
-    const r = el.getBoundingClientRect()
-    const x = (e.clientX - r.left - r.width / 2) / (r.width / 2)
-    const y = (e.clientY - r.top - r.height / 2) / (r.height / 2)
-    if (Math.hypot(x, y) > 1) return
-    const h = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360
-    setHue(Math.round(h))
-    onChange(hslToHex(h, 72, 45))
-  }
-  const angle = ((hue * Math.PI) / 180)
-  return (
-    <div className="theme-wheel-wrap">
-      <div
-        ref={ref}
-        className="theme-wheel"
-        role="slider"
-        aria-label="Rueda de color: elige el tono de la clase"
-        aria-valuenow={hue}
-        tabIndex={0}
-        onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); pick(e) }}
-        onPointerMove={(e) => { if (e.buttons) pick(e) }}
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { const h = (hue + 10) % 360; setHue(h); onChange(hslToHex(h, 72, 45)) }
-          if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { const h = (hue + 350) % 360; setHue(h); onChange(hslToHex(h, 72, 45)) }
-        }}
-      >
-        <span className="theme-wheel__dot" style={{ left: `${50 + Math.cos(angle) * 38}%`, top: `${50 + Math.sin(angle) * 38}%`, background: hslToHex(hue, 72, 45) }} />
-      </div>
-      <span className="theme-wheel__hint">Mueve el punto sobre la rueda para elegir el tono</span>
-    </div>
-  )
 }
 
 // Texto legible sobre un color sólido: blanco sobre colores oscuros,
@@ -168,7 +117,6 @@ export function ThemePicker({ value, onChange, nombre, grupo }) {
         ))}
       </div>
       <div className="theme-custom">
-        <ColorWheel value={customHex} onChange={(hex) => onChange({ ...value, tema: hex })} />
         <label className="theme-custom__exact">
           <span>Color exacto</span>
           <input
