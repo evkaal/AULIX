@@ -90,6 +90,46 @@ export function resolveClassTheme(claseOrTema) {
   return { hex: preset.hex, bg: softBg(preset.hex), fg: preset.hex, name: preset.label }
 }
 
+// Rueda de color radial: el docente mueve el punto sobre la rueda y elige
+// el tono; la saturación y luminosidad se fijan para que siempre se vea bien
+// en la tarjeta. También hay un input de color exacto debajo.
+function ColorWheel({ value, onChange }) {
+  const ref = useRef(null)
+  const [hue, setHue] = useState(() => hexToHsl(value?.startsWith('#') ? value : '#1675D1')[0])
+  const pick = (e) => {
+    const el = ref.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const x = (e.clientX - r.left - r.width / 2) / (r.width / 2)
+    const y = (e.clientY - r.top - r.height / 2) / (r.height / 2)
+    if (Math.hypot(x, y) > 1) return
+    const h = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360
+    setHue(Math.round(h))
+    onChange(hslToHex(h, 72, 45))
+  }
+  const angle = ((hue * Math.PI) / 180)
+  return (
+    <div className="theme-wheel-wrap">
+      <div
+        ref={ref}
+        className="theme-wheel"
+        role="slider"
+        aria-label="Rueda de color: elige el tono de la clase"
+        aria-valuenow={hue}
+        tabIndex={0}
+        onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); pick(e) }}
+        onPointerMove={(e) => { if (e.buttons) pick(e) }}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { const h = (hue + 10) % 360; setHue(h); onChange(hslToHex(h, 72, 45)) }
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { const h = (hue + 350) % 360; setHue(h); onChange(hslToHex(h, 72, 45)) }
+        }}
+      >
+        <span className="theme-wheel__dot" style={{ left: `${50 + Math.cos(angle) * 38}%`, top: `${50 + Math.sin(angle) * 38}%`, background: hslToHex(hue, 72, 45) }} />
+      </div>
+      <span className="theme-wheel__hint">Mueve el punto sobre la rueda para elegir el tono</span>
+    </div>
+  )
+}
 
 // Texto legible sobre un color sólido: blanco sobre colores oscuros,
 // casi negro sobre colores claros.
