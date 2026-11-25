@@ -1,7 +1,7 @@
 # AULIX — Backend (Spring Boot + JWT)
 
 Backend de **AULIX**, plataforma de clases para docentes y estudiantes, hecho
-con el mismo patrón de las Actividades 3 y 4: **Spring Boot 4.1.2, Java 21,
+con Spring Boot 4.1.2, Java 21,
 Spring Data JPA, Spring Security (JWT stateless), MySQL, Lombok y JJWT 0.12.6**.
 
 
@@ -47,7 +47,7 @@ frontend-patch/                  # authService.js y classService.js ya adaptados
 | Mensaje | conversacion, autor, texto, fechaEnvio, adjunto (nombre/ruta/tamaño). |
 | LecturaMensaje | mensaje + usuario, única por pareja. |
 
-Reglas que aplica el backend (no confíes en el frontend):
+Reglas que aplica el backend :
 
 - Docente solo gestiona **sus propias** clases; estudiante solo ve clases donde está inscrito.
 - Entrega: solo su autor o el docente de esa clase. Su comentario es privado (autor + docente).
