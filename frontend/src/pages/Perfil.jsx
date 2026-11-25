@@ -39,7 +39,7 @@ export default function Perfil() {
         </section>
         <section className="card">
           <h2>Configuración de la cuenta</h2>
-          <p className="page-text">Para cambiar tu contraseña usa Configuración, que habla con el backend real (POST /api/auth/change-password) con la contraseña fuerte validada bajo el input.</p>
+          
           <Link className="btn btn--primary" to="/configuracion">Ir a Configuración</Link>
           {isDemo() && (
             <>

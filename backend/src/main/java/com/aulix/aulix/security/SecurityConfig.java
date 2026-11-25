@@ -34,6 +34,9 @@ public class SecurityConfig {
                 // en orden y gana la primera. Sin esta línea, cambiar la
                 // contraseña quedaría abierto sin token.
                 .requestMatchers(HttpMethod.POST, "/api/auth/change-password").authenticated()
+                // Igual que change-password: va ANTES del permitAll de /api/auth/**.
+                // Solo un docente autenticado puede probar el envío de correo.
+                .requestMatchers(HttpMethod.POST, "/api/auth/test-email").hasRole("DOCENTE")
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated()
