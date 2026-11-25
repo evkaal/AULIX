@@ -91,7 +91,6 @@ export function resolveClassTheme(claseOrTema) {
 }
 
 
-
 // Texto legible sobre un color sólido: blanco sobre colores oscuros,
 // casi negro sobre colores claros.
 export function textOn(hex) {
