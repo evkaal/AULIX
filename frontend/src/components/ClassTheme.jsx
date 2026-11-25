@@ -1,4 +1,4 @@
-// ClassTheme — colores e iconos de las clases (Aulix v2).
+ // ClassTheme — colores e iconos de las clases (Aulix v2).
 // El backend guarda el color en el campo libre `tema` de Clase (String,
 // sin validación de enum) y el icono en `icono` (String). Por eso un color
 // personalizado se guarda tal cual como hexadecimal, ej. tema="#0EA47A",
