@@ -14,6 +14,13 @@ function saludo() {
   const h = new Date().getHours()
   return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'
 }
+// Lote 5B: frase según la hora (el saludo ya existía).
+function frasePorHora() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Empieza el día con energía, revisa tus pendientes.'
+  if (h < 19) return 'Vas a mitad del día, sigue con tus clases.'
+  return 'Cierra el día revisando lo entregado.'
+}
 function fechaHoy() {
   const f = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())
   return f.charAt(0).toUpperCase() + f.slice(1)
@@ -38,13 +45,16 @@ function ClassCard({ clase }) {
             <button type="button" className="icon-btn icon-btn--sm" aria-label={`Opciones de ${clase.nombre || 'esta clase'}`} aria-expanded={menu} aria-haspopup="menu" onClick={() => setMenu((m) => !m)}><Ellipsis size={18} /></button>
             {menu && (
               <>
+      
+      
                 <button type="button" className="class-menu__backdrop" aria-label="Cerrar menú" onClick={() => setMenu(false)} />
                 <div className="class-menu" role="menu">
                   <Link role="menuitem" to="/mis-clases" onClick={() => setMenu(false)}>Ver clase</Link>
                   <Link role="menuitem" to="/tareas" onClick={() => setMenu(false)}>Ver tareas</Link>
                   <Link role="menuitem" to="/calificaciones" onClick={() => setMenu(false)}>Ver calificaciones</Link>
                 </div>
-              </>
+      
+        </>
             )}
           </div>
         </div>
@@ -128,7 +138,7 @@ export default function Inicio() {
       <div className="page-head">
         <div>
           <h1 className="page-title">¡{saludo()}, {firstName}!</h1>
-          <p className="page-subtitle">Cada día es una nueva oportunidad para inspirar.</p>
+          <p className="page-subtitle">{frasePorHora()}</p>
         </div>
         <p className="page-date"><CalendarDays size={17} aria-hidden="true" />{fechaHoy()}</p>
       </div>
@@ -145,6 +155,12 @@ export default function Inicio() {
 
       {state.status === 'ready' && (
         <>
+          {/* Lote 4A: menú horizontal para saltar a cada sección sin scrollear. Es la misma página para docente y estudiante. */}
+          <nav className="pg-tabs" aria-label="Ir a sección" style={{ marginBottom: 8 }}>
+            <a className="pg-tab" href="#sec-clases">Mis clases</a>
+            <a className="pg-tab" href="#sec-avisos">Avisos recientes</a>
+            <a className="pg-tab" href="#sec-actividad">Actividad reciente</a>
+          </nav>
           {(state.data.tareasPendientes != null || entregadas != null || state.data.trabajosCalificados != null || proximas.length > 0) && (
             <section className="pg-kpis" aria-label="Resumen">
               {state.data.tareasPendientes != null && (
@@ -164,7 +180,7 @@ export default function Inicio() {
 
           <section>
             <div className="section-head">
-              <h2>Mis clases</h2>
+              <h2 id="sec-clases">Mis clases</h2>
               <Link to="/mis-clases">Ver todas →</Link>
             </div>
             {(state.data.clases ?? []).length === 0 ? (
@@ -184,7 +200,7 @@ export default function Inicio() {
           {avisos.length > 0 && (
             <section>
               <div className="section-head">
-                <h2><Megaphone size={18} style={{ verticalAlign: '-3px', marginRight: 6 }} />Avisos recientes</h2>
+                <h2 id="sec-avisos"><Megaphone size={18} style={{ verticalAlign: '-3px', marginRight: 6 }} />Avisos recientes</h2>
                 <Link to="/mis-clases">Ver clases →</Link>
               </div>
               <div className="avisos-list">
@@ -224,7 +240,7 @@ export default function Inicio() {
 
           <section>
             <div className="section-head">
-              <h2>Actividad reciente</h2>
+              <h2 id="sec-actividad">Actividad reciente</h2>
               <Link to="/tareas">Ver actividad →</Link>
             </div>
             <div className="feed">
