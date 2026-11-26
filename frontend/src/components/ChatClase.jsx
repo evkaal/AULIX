@@ -62,6 +62,15 @@ export default function ChatClase({ claseId, claseNombre, grupo }) {
     } catch (err) { setError(err.message); setStatus('error') }
   }, [claseId])
   useEffect(() => { load(0) }, [load])
+  useEffect(() => {
+  const t = setInterval(async () => {
+    try {
+      const data = await apiFetch(`/mensajes/conversaciones/${claseId}/mensajes?page=0&size=${PAGE_SIZE}`)
+      setMensajes([...(data.content ?? [])].reverse())
+    } catch { /* si falla una vez, el chat viejo sigue visible */ }
+  }, 8000)
+  return () => clearInterval(t)
+}, [claseId])
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight }, [mensajes])
 
   const cargarMas = async () => {

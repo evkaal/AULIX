@@ -69,6 +69,10 @@ export default function Mensajes() {
   }, [filtro, q])
 
   useEffect(() => { loadConvs() }, [loadConvs])
+  useEffect(() => {
+  const t = setInterval(() => loadConvs(filtro, q, true), 10000)
+  return () => clearInterval(t)
+}, [loadConvs, filtro, q])
 
   const abrir = useCallback(async (conv) => {
     if (!conv?.claseId) return
