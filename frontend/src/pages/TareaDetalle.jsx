@@ -45,6 +45,10 @@ export default function TareaDetalle() {
 
   const entregar = async (e) => {
     e.preventDefault(); setFormError(''); setSent('')
+    if (tarea.estado !== 'ACTIVA') {
+  setFormError('Esta tarea no está activa. El backend solo acepta entregas de tareas ACTIVA.');
+  return
+  }
     if (!archivo) { setFormError('Elige un archivo para entregar (PDF, DOCX o imagen, máx. 20 MB). El backend exige un archivo para registrar la entrega; el comentario solo no basta.'); return }
     if (archivo.size > 20 * 1024 * 1024) { setFormError('El archivo supera los 20 MB que acepta el backend. Comprímelo o sube uno más ligero.'); return }
     setEnviando(true)
@@ -107,8 +111,11 @@ export default function TareaDetalle() {
                   <label className="pg-field"><span className="pg-label">Comentario privado (opcional, solo lo ven tú y tu docente)</span><textarea value={comentario} onChange={(e) => setComentario(e.target.value)} className="pg-textarea" placeholder="Algo que quieras decirle a tu docente…" /></label>
                   {formError && <p className="pg-error" role="alert">{formError}</p>}
                   {sent && <p className="pg-hint" role="status">{sent}</p>}
-                  <button type="submit" className="btn btn--primary" disabled={enviando || tarea.estado !== 'ACTIVA'}>{enviando ? 'Enviando…' : miEntrega ? 'Volver a entregar (actualiza la misma)' : 'Entregar tarea'}</button>
-                </form>
+<button type="submit" className="btn btn--primary" disabled={enviando || tarea.estado !== 'ACTIVA'}>
+  {tarea.estado === 'ACTIVA'
+    ? (enviando ? 'Enviando…' : miEntrega ? 'Volver a entregar (actualiza la misma)' : 'Entregar tarea')
+    : tarea.estado === 'PROGRAMADA' ? 'Aún no activa' : 'Cerrada'}
+</button>                </form>
               </div>
             )}
           </div>
