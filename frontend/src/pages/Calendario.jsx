@@ -35,7 +35,9 @@ export default function Calendario() {
   const [error, setError] = useState('')
   const [seleccionado, setSeleccionado] = useState(hoy)
   const [tareas, setTareas] = useState([])
-  const [prog, setProg] = useState({ tareaId: '', fechaActivacion: '', fechaVencimiento: '', activacionAutomatica: true, estado: 'PROGRAMADA' })
+  // Lote 4B: se elige primero la materia, luego nueva tarea o programar una
+  // existente. Sin campo Estado: se deriva con derivarEstadoTarea.
+  const [prog, setProg] = useState({ materiaId: '', modo: 'nueva', titulo: '', descripcion: '', tareaId: '', fechaActivacion: '', fechaVencimiento: '', activacionAutomatica: true })
   const [progSaving, setProgSaving] = useState(false)
   const [progError, setProgError] = useState('')
   const [progOk, setProgOk] = useState(false)
@@ -82,12 +84,29 @@ export default function Calendario() {
     e.preventDefault()
     setProgError('')
     setProgOk(false)
-    if (!prog.tareaId) {
-      setProgError('Elige una tarea.')
+    if (!prog.materiaId) {
+      setProgError('Elige una materia.')
       return
     }
+    if (prog.modo === 'nueva' && !prog.titulo.trim()) { setProgError('Escribe el título de la tarea nueva.'); return }
+    if (prog.modo === 'programar' && !prog.tareaId) { setProgError('Elige una tarea.'); return }
     setProgSaving(true)
     try {
+      if (prog.modo === 'nueva') {
+        // POST /api/tareas (mismo body que Tareas.jsx crearTarea).
+        await apiFetch('/tareas', {
+          method: 'POST',
+          body: JSON.stringify({
+            claseId: Number(prog.materiaId),
+            titulo: prog.titulo.trim(),
+            descripcion: prog.descripcion.trim() || null,
+            fechaActivacion: prog.fechaActivacion || null,
+            fechaVencimiento: prog.fechaVencimiento || null,
+            activacionAutomatica: prog.activacionAutomatica,
+            estado: derivarEstadoTarea(prog),
+          }),
+        })
+      } else {
       await apiFetch(`/tareas/${prog.tareaId}/programacion`, {
         method: 'PUT',
         body: JSON.stringify({
@@ -99,6 +118,8 @@ export default function Calendario() {
           estado: derivarEstadoTarea(prog),
         }),
       })
+      }
+      apiFetch('/tareas').then(setTareas).catch(() => {})
       setProgOk(true)
       load()
     } catch (err) {
@@ -220,11 +241,33 @@ export default function Calendario() {
             {esDocente && (
               <section className="pg-day-panel">
                 <h3>Programar tarea</h3>
-                <p className="pg-hint">Zona horaria del colegio: Ciudad de México (UTC−6).</p>
+
                 {progError && <p className="pg-error" role="alert">{progError}</p>}
                 {progOk && <p className="pg-hint" style={{ color: '#1b6b57', fontWeight: 700 }}>Programación guardada.</p>}
                 <form className="pg-form" onSubmit={guardarProgramacion}>
                   <label className="pg-field">
+                    <span className="pg-label">Materia *</span>
+                    <select className="pg-select" value={prog.materiaId} onChange={(e) => setProg((p) => ({ ...p, materiaId: e.target.value, tareaId: '' }))}>
+                      <option value="">Elige una materia…</option>
+                      {clases.map((c) => <option key={c.id} value={c.id}>{c.nombre} · {c.grupo}</option>)}
+                    </select>
+                  </label>
+                  <label className="pg-field">
+                    <span className="pg-label">¿Qué quieres hacer?</span>
+                    <select className="pg-select" value={prog.modo} onChange={(e) => setProg({ ...prog, modo: e.target.value })}>
+                      <option value="nueva">Asignar una tarea nueva</option>
+                      <option value="programar">Programar una tarea para más tarde</option>
+                    </select>
+                  </label>
+                  <label className="pg-field" style={prog.modo === 'nueva' ? undefined : { display: 'none' }}>
+                    <span className="pg-label">Título de la tarea nueva *</span>
+                    <input className="pg-input" value={prog.titulo} onChange={(e) => setProg({ ...prog, titulo: e.target.value })} placeholder="Ecuaciones de primer grado" />
+                  </label>
+                  <label className="pg-field" style={prog.modo === 'nueva' ? undefined : { display: 'none' }}>
+                    <span className="pg-label">Descripción</span>
+                    <textarea className="pg-textarea" value={prog.descripcion} onChange={(e) => setProg({ ...prog, descripcion: e.target.value })} placeholder="Resumen corto de la tarea." />
+                  </label>
+                  <label className="pg-field" style={prog.modo === 'programar' ? undefined : { display: 'none' }}>
                     <span className="pg-label">Tarea</span>
                     <select className="pg-select" value={prog.tareaId} onChange={(e) => {
                       const t = tareas.find((x) => String(x.id) === e.target.value)
@@ -234,11 +277,11 @@ export default function Calendario() {
                         fechaActivacion: t ? toDatetimeLocal(t.fechaActivacion) : p.fechaActivacion,
                         fechaVencimiento: t ? toDatetimeLocal(t.fechaVencimiento) : p.fechaVencimiento,
                         activacionAutomatica: t?.activacionAutomatica ?? p.activacionAutomatica,
-                        estado: t ? derivarEstadoTarea({ ...t, fechaActivacion: toDatetimeLocal(t.fechaActivacion) }) : p.estado,
+
                       }))
                     }}>
                       <option value="">Elige una tarea…</option>
-                      {tareas.map((t) => <option key={t.id} value={t.id}>{t.titulo} · {t.claseNombre}</option>)}
+                      {tareas.filter((t) => !prog.materiaId || String(t.claseId) === prog.materiaId).map((t) => <option key={t.id} value={t.id}>{t.titulo} · {t.claseNombre}</option>)}
                     </select>
                   </label>
                   <label className="pg-field">
@@ -250,8 +293,9 @@ export default function Calendario() {
                     <input className="pg-input" type="datetime-local" value={prog.fechaVencimiento} onChange={(e) => setProg({ ...prog, fechaVencimiento: e.target.value })} />
                   </label>
                   <label className="pg-field">
-                    <span className="pg-label">Estado</span>
-                    <select className="pg-select" value={prog.estado} onChange={(e) => setProg({ ...prog, estado: e.target.value })}>
+                    {/* Lote 4B: campo Estado eliminado de la vista; se deriva con derivarEstadoTarea. */}
+                    <span className="pg-label" style={{ display: 'none' }}>Estado</span>
+                    <select className="pg-select" value={prog.estado} onChange={(e) => setProg({ ...prog, estado: e.target.value })} style={{ display: 'none' }} aria-hidden="true">
                       <option value="PROGRAMADA">Programada</option>
                       <option value="ACTIVA">Activa</option>
                       <option value="CERRADA">Cerrada</option>
