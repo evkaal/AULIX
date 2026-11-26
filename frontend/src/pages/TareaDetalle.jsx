@@ -11,7 +11,7 @@ import '../styles/pages.css'
 // Backend real: GET /api/tareas/{id} (TareaResponse: miEstado, miNota,
 // miEntregaId, entregasRecibidas, entregasTotales). Entrega del estudiante:
 // POST /api/tareas/{id}/entregas (multipart: archivo + comentario +
-// paginas, 201; volver a entregar actualiza la misma). No hay endpoint
+// comentario, 201; volver a entregar actualiza la misma). No hay endpoint
 // para listar todas las entregas de una tarea: el docente las revisa en
 // Calificaciones por alumno (GET /api/clases/{id}/alumnos/{alumnoId}/entregas).
 export default function TareaDetalle() {
@@ -24,7 +24,7 @@ export default function TareaDetalle() {
   const [error, setError] = useState('')
   const [archivo, setArchivo] = useState(null)
   const [comentario, setComentario] = useState('')
-  const [paginas, setPaginas] = useState('')
+
   const [enviando, setEnviando] = useState(false)
   const [formError, setFormError] = useState('')
   const [sent, setSent] = useState('')
@@ -33,10 +33,12 @@ export default function TareaDetalle() {
   const load = useCallback(async () => {
     setStatus('loading'); setError('')
     try {
-      const t = await apiFetch(`/tareas/${id}`)
-      setTarea(t)
-      if (!esDocente && t.miEntregaId) {
-        try { setMiEntrega(await apiFetch(`/entregas/${t.miEntregaId}`)) } catch { setMiEntrega(null) }
+      // El backend devuelve { tarea, recursos, miEntrega }, no la tarea plana.
+      const data = await apiFetch(`/tareas/${id}`)
+      const t = data?.tarea ?? data; setTarea(t)
+      const entregaId = t.miEntregaId ?? data?.miEntrega ?? null
+      if (!esDocente && entregaId) {
+        try { setMiEntrega(await apiFetch(`/entregas/${entregaId}`)) } catch { setMiEntrega(null) }
       }
       setStatus('ready')
     } catch (err) { setError(err.message); setStatus('error') }
@@ -56,7 +58,7 @@ export default function TareaDetalle() {
       const fd = new FormData()
       fd.append('archivo', archivo)
       if (comentario.trim()) fd.append('comentario', comentario.trim())
-      if (paginas) fd.append('paginas', paginas)
+
       const entrega = await apiFetchForm(`/tareas/${id}/entregas`, fd)
       setMiEntrega(entrega); setSent('¡Entrega enviada! Tu docente la revisará y te pondrá calificación.')
       setArchivo(null); if (fileRef.current) fileRef.current.value = ''
@@ -107,7 +109,7 @@ export default function TareaDetalle() {
                   <label className="pg-field"><span className="pg-label">Subir archivo * (PDF, DOCX o imagen, máx. 20 MB)</span><input ref={fileRef} type="file" accept=".pdf,.docx,.png,.jpg,.jpeg,.gif,.webp" onChange={(e) => setArchivo(e.target.files?.[0] ?? null)} className="pg-input" /></label>
                   {archivo && <p className="pg-hint" role="status">Archivo elegido: <strong>{archivo.name}</strong> ({Math.round(archivo.size / 1024)} KB)</p>}
                   {!archivo && <p className="pg-hint">El archivo es obligatorio: el backend solo registra la entrega con un archivo. El comentario es opcional.</p>}
-                  <label className="pg-field"><span className="pg-label">Páginas (opcional)</span><input type="number" min="1" value={paginas} onChange={(e) => setPaginas(e.target.value)} className="pg-input" placeholder="Ej. 3" /></label>
+
                   <label className="pg-field"><span className="pg-label">Comentario privado (opcional, solo lo ven tú y tu docente)</span><textarea value={comentario} onChange={(e) => setComentario(e.target.value)} className="pg-textarea" placeholder="Algo que quieras decirle a tu docente…" /></label>
                   {formError && <p className="pg-error" role="alert">{formError}</p>}
                   {sent && <p className="pg-hint" role="status">{sent}</p>}
