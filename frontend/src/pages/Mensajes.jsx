@@ -13,8 +13,8 @@ const PAGE_SIZE = 50
 
 export default function Mensajes() {
   const { user } = useAuth()
-  // Bug 8: voz y archivos SOLO para el docente. El alumno escribe texto y
-  // descarga/escucha lo que comparten; no ve el boton de adjuntar ni el de voz.
+  // Bug 8 corregido: archivos para todos, voz solo para el docente.
+  // El backend solo acepta PDF/DOCX/imagen, por eso la voz no se abre al estudiante.
   const esDocente = user?.rol === 'DOCENTE'
   const { id: conversacionInicial } = useParams()
   const [convs, setConvs] = useState([])
@@ -279,14 +279,12 @@ export default function Mensajes() {
                     </div>
                     <form className="pg-chat__composer" onSubmit={enviar}>
                       <input type="text" placeholder={`Escribe un mensaje para ${sel.claseNombre || 'esta materia'}…`} value={texto} onChange={(e) => setTexto(e.target.value)} aria-label="Escribe un mensaje" disabled={enviando} />
-                      {esDocente && (
-                        <>
-                          <input ref={fileRef} type="file" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.gif,.webp,audio/*,video/*" onChange={(e) => setAdjunto(e.target.files?.[0] ?? null)} aria-label="Adjuntar archivo" style={{ display: 'none' }} />
-                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => fileRef.current?.click()} aria-label="Adjuntar archivo" title={adjunto ? adjunto.name : 'Adjuntar archivo, imagen, audio o video (en modo real el backend acepta PDF, DOCX o imagen, máx. 20 MB)'}>
-                            <Paperclip size={16} /> {adjunto ? '✓' : ''}
-                          </button>
-                        </>
-                      )}
+                      <>
+  <input ref={fileRef} type="file" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.gif,.webp" onChange={(e) => setAdjunto(e.target.files?.[0] ?? null)} aria-label="Adjuntar archivo" style={{ display: 'none' }} />
+  <button type="button" className="btn btn--ghost btn--sm" onClick={() => fileRef.current?.click()} aria-label="Adjuntar archivo" title={adjunto ? adjunto.name : 'Adjuntar PDF, DOCX o imagen, máx. 20 MB'}>
+    <Paperclip size={16} /> {adjunto ? '✓' : ''}
+  </button>
+</>
                       {/* BUG CORREGIDO (v7): el botón solo se activaba con texto o
                           adjunto, pero NO con nota de voz, así que para mandar
                           un audio había que escribir un mensaje aparte. Ahora
@@ -318,9 +316,9 @@ export default function Mensajes() {
                         {notaVoz && <p className="pg-hint">Nota de voz lista ({notaVoz.segundos}s). Pulsa Enviar para mandarla sola, sin escribir nada.</p>}
                       </div>
                     )}
-                    {!esDocente && (
-                      <p className="pg-hint" style={{ padding: '0 16px 8px' }}>Solo tu docente puede enviar notas de voz y archivos. Tú puedes escribir mensajes y descargar o escuchar lo que compartan.</p>
-                    )}
+                   {!esDocente && (
+  <p className="pg-hint" style={{ padding: '0 16px 8px' }}>Puedes mandar PDF, DOCX o imagen (máx. 20 MB), con o sin texto. Las notas de voz son solo del docente por ahora.</p>
+)}
                     {envioError && <p className="pg-error" role="alert" style={{ padding: '0 16px 12px' }}>{envioError}</p>}
                     <p className="pg-hint" style={{ padding: '0 16px 12px' }}>Tu mensaje será visible para toda la clase de {sel.claseNombre || 'esta materia'} · {sel.grupo || ''}.</p>
                   </>

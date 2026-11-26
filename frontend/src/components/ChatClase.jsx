@@ -21,7 +21,8 @@ const PAGE_SIZE = 50
 
 export default function ChatClase({ claseId, claseNombre, grupo }) {
   const { user } = useAuth()
-  // Bug 8: voz y archivos SOLO para el docente (igual que en Mensajes).
+// Bug 8 corregido: archivos para todos, voz solo para el docente.
+// El backend solo acepta PDF/DOCX/imagen, por eso la voz no se abre al estudiante.
   const esDocente = user?.rol === 'DOCENTE'
   const [mensajes, setMensajes] = useState([])
   const [status, setStatus] = useState('loading')
@@ -143,15 +144,12 @@ export default function ChatClase({ claseId, claseNombre, grupo }) {
           </div>
           <form className="pg-chat__composer" onSubmit={enviar}>
             <input type="text" placeholder={`Escribe un mensaje para ${claseNombre || 'esta materia'}…`} value={texto} onChange={(e) => setTexto(e.target.value)} aria-label="Escribe un mensaje" disabled={enviando} />
-            {esDocente && (
-              <>
-                <input ref={fileRef} type="file" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.gif,.webp,audio/*,video/*" onChange={(e) => setAdjunto(e.target.files?.[0] ?? null)} aria-label="Adjuntar archivo" style={{ display: 'none' }} />
-                <button type="button" className="btn btn--ghost btn--sm" onClick={() => fileRef.current?.click()} aria-label="Adjuntar archivo" title={adjunto ? adjunto.name : 'Adjuntar archivo, imagen, audio o video (en modo real el backend acepta PDF, DOCX o imagen, máx. 20 MB)'}>
-                  <Paperclip size={16} /> {adjunto ? '✓' : ''}
-                </button>
-              </>
-            )}
-            <button type="submit" className="btn btn--primary" disabled={enviando || (!texto.trim() && !adjunto && !notaVoz)} aria-label="Enviar mensaje">
+<>
+  <input ref={fileRef} type="file" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.gif,.webp" onChange={(e) => setAdjunto(e.target.files?.[0] ?? null)} aria-label="Adjuntar archivo" style={{ display: 'none' }} />
+  <button type="button" className="btn btn--ghost btn--sm" onClick={() => fileRef.current?.click()} aria-label="Adjuntar archivo" title={adjunto ? adjunto.name : 'Adjuntar PDF, DOCX o imagen, máx. 20 MB'}>
+    <Paperclip size={16} /> {adjunto ? '✓' : ''}
+  </button>
+</>            <button type="submit" className="btn btn--primary" disabled={enviando || (!texto.trim() && !adjunto && !notaVoz)} aria-label="Enviar mensaje">
               <Send size={16} />
             </button>
           </form>
@@ -173,10 +171,9 @@ export default function ChatClase({ claseId, claseNombre, grupo }) {
               {notaVoz && <p className="pg-hint">Nota de voz lista ({notaVoz.segundos}s). Pulsa Enviar para mandarla sola, sin escribir nada.</p>}
             </div>
           )}
-          {!esDocente && (
-            <p className="pg-hint" style={{ padding: '0 16px 8px' }}>Solo tu docente puede enviar notas de voz y archivos. Tú puedes escribir mensajes y descargar o escuchar lo que compartan.</p>
-          )}
-          {envioError && <p className="pg-error" role="alert" style={{ padding: '0 16px 12px' }}>{envioError}</p>}
+{!esDocente && (
+  <p className="pg-hint" style={{ padding: '0 16px 8px' }}>Puedes mandar PDF, DOCX o imagen (máx. 20 MB), con o sin texto. Las notas de voz son solo del docente por ahora.</p>
+)}          {envioError && <p className="pg-error" role="alert" style={{ padding: '0 16px 12px' }}>{envioError}</p>}
           <p className="pg-hint" style={{ padding: '0 16px 12px' }}>Tu mensaje será visible para toda la clase de {claseNombre} · {grupo}.</p>
         </>
       )}
