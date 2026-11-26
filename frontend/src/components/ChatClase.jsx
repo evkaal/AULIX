@@ -18,6 +18,8 @@ import VoiceRecorder from './VoiceRecorder'
 import { fmtFechaHora } from '../utils/format'
 
 const PAGE_SIZE = 50
+// Lote 5C: emojis sin librería nueva; viajan como texto normal en `texto`.
+const EMOJIS = ['😀', '😂', '👍', '❤️', '🎉', '📚', '✅', '👏']
 
 export default function ChatClase({ claseId, claseNombre, grupo }) {
   const { user } = useAuth()
@@ -59,7 +61,7 @@ export default function ChatClase({ claseId, claseNombre, grupo }) {
       setPage(p)
       setHayMas((data.totalPages ?? 1) > 1)
       setStatus('ready')
-      apiFetch(`/mensajes/conversaciones/${claseId}/leido`, { method: 'POST' }).catch(() => {})
+      apiFetch(`/mensajes/conversaciones/${claseId}/leido`, { method: 'POST' }).then(() => { try { window.dispatchEvent(new Event('aulix-leido')) } catch { /* sin evento */ } }).catch(() => {})
     } catch (err) { setError(err.message); setStatus('error') }
   }, [claseId])
   useEffect(() => { load(0) }, [load])
@@ -153,6 +155,11 @@ export default function ChatClase({ claseId, claseNombre, grupo }) {
               <Send size={16} />
             </button>
           </form>
+          <div className="emoji-row" role="group" aria-label="Insertar emoji" style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: '8px 16px 0' }}>
+            {EMOJIS.map((e) => (
+              <button key={e} type="button" onClick={() => setTexto((t) => t + e)} aria-label={`Insertar emoji ${e}`} style={{ border: 0, background: 'none', fontSize: 20, cursor: 'pointer', padding: 2, lineHeight: 1 }}>{e}</button>
+            ))}
+          </div>
           {vistaPrevia && (
             <div className="msg-preview" role="group" aria-label="Vista previa del adjunto">
               <span className="msg-preview__label">Vista previa antes de enviar:</span>

@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock, Pencil, Plus, RefreshCw, Search, Trash2, WifiOff, X } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 import { useAuth } from '../context/AuthContext'
 import { apiDownload, apiFetch } from '../services/authService'
 import { estadoTareaLabel, derivarEstadoTarea, fmtFechaHora, miEstadoBadge, toDatetimeLocal } from '../utils/format'
+import { scrollToRef } from '../utils/scroll'
 import '../styles/pages.css'
 
 const TABS = [
@@ -50,6 +51,10 @@ export default function Tareas() {
   const [entregasStatus, setEntregasStatus] = useState('idle')
   const [entregasError, setEntregasError] = useState('')
   const [eliminando, setEliminando] = useState(false)
+  // Lote 2C: al elegir una acción se baja sola hasta su panel.
+  const entregasRef = useRef(null)
+  const programarRef = useRef(null)
+  const editarRef = useRef(null)
   const [eliminarError, setEliminarError] = useState('')
 
   const load = useCallback(async () => {
@@ -118,6 +123,8 @@ export default function Tareas() {
 
   const abrirEditar = (t) => {
     setEditando(t)
+    setEntregasTarea(null); setProgramando(null)
+    setTimeout(() => scrollToRef(editarRef), 50)
     setEditForm({
       claseId: String(t.claseId),
       titulo: t.titulo ?? '',
@@ -186,6 +193,9 @@ export default function Tareas() {
   // filtran por tareaId. En demo el mock ya implementa esos dos endpoints.
   const verEntregas = useCallback(async (t) => {
     setEntregasTarea(t)
+    // Mejora MD: las acciones no se acumulan, solo queda abierto un panel.
+    setProgramando(null); setEditando(null)
+    setTimeout(() => scrollToRef(entregasRef), 50)
     setEntregas([])
     setEntregasStatus('loading')
     setEntregasError('')
@@ -216,6 +226,8 @@ export default function Tareas() {
 
   const abrirProgramar = (t) => {
     setProgramando(t)
+    setEntregasTarea(null); setEditando(null)
+    setTimeout(() => scrollToRef(programarRef), 50)
     setProg({
       fechaActivacion: toDatetimeLocal(t.fechaActivacion),
       fechaVencimiento: toDatetimeLocal(t.fechaVencimiento),
@@ -419,7 +431,7 @@ export default function Tareas() {
       )}
 
       {entregasTarea && esDocente && (
-        <section className="pg-form-panel" aria-label="Entregas de la tarea" style={{ marginTop: 16 }}>
+        <section ref={entregasRef} className="pg-form-panel" aria-label="Entregas de la tarea" style={{ marginTop: 16 }}>
           <div className="section-head">
             <h3 style={{ margin: 0 }}>Entregas: {entregasTarea.titulo}</h3>
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEntregasTarea(null)}>Cerrar</button>
@@ -450,9 +462,9 @@ export default function Tareas() {
       )}
 
       {programando && esDocente && (
-        <section className="pg-form-panel" aria-label="Programar tarea" style={{ marginTop: 16 }}>
+        <section ref={programarRef} className="pg-form-panel" aria-label="Programar tarea" style={{ marginTop: 16 }}>
           <h3>Programar tarea: {programando.titulo}</h3>
-          <p className="pg-hint">Zona horaria del colegio: Ciudad de México (UTC−6). La tarea se publicará en la fecha de activación si la activación automática está encendida.</p>
+          <p className="pg-hint">La tarea se publicará en la fecha de activación si la activación automática está encendida.</p>
           {progError && <p className="pg-error" role="alert">{progError}</p>}
           <form className="pg-form" onSubmit={guardarProgramacion}>
             <div className="pg-grid">
@@ -485,7 +497,7 @@ export default function Tareas() {
         </section>
       )}
       {editando && esDocente && (
-        <section className="pg-form-panel" aria-label="Editar tarea" style={{ marginTop: 16 }}>
+        <section ref={editarRef} className="pg-form-panel" aria-label="Editar tarea" style={{ marginTop: 16 }}>
           <h3>Editar tarea: {editando.titulo}</h3>
           <p className="pg-hint">Materia: {editando.claseNombre} (no se cambia al editar).</p>
           {editError && <p className="pg-error" role="alert">{editError}</p>}

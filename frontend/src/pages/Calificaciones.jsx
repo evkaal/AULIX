@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Download, Printer, RefreshCw, Search, TriangleAlert, WifiOff } from 'lucide-react'
 import Avatar from '../components/Avatar'
 import { useAuth } from '../context/AuthContext'
 import { apiDownload, apiFetch, apiFetchText } from '../services/authService'
 import { fmtFecha, fmtFechaHora } from '../utils/format'
+import { scrollToRef } from '../utils/scroll'
 import '../styles/pages.css'
 
 const PAGE_SIZE = 8
@@ -28,6 +29,9 @@ export default function Calificaciones() {
   const [entregasStatus, setEntregasStatus] = useState('idle')
   const [entregasError, setEntregasError] = useState('')
   const [exportando, setExportando] = useState(false)
+  // Lote 2C: al elegir una acción se baja sola hasta su panel.
+  const alumnosRef = useRef(null)
+  const entregasRef = useRef(null)
   const [exportError, setExportError] = useState('')
 
   const loadResumen = useCallback(async () => {
@@ -71,6 +75,7 @@ export default function Calificaciones() {
     setFiltro('')
     setQ('')
     cargarAlumnos(clase.claseId, 0, '', '')
+    setTimeout(() => scrollToRef(alumnosRef), 50)
   }
 
   const verAlumno = async (alumno) => {
@@ -79,6 +84,7 @@ export default function Calificaciones() {
     setEntregasError('')
     try {
       setEntregas(await apiFetch(`/clases/${claseSel.claseId}/alumnos/${alumno.id}/entregas`))
+      setTimeout(() => scrollToRef(entregasRef), 50)
       setEntregasStatus('ready')
     } catch (err) {
       setEntregasError(err.message)
@@ -88,9 +94,10 @@ export default function Calificaciones() {
 
   // Lee el CSV del backend (GET /api/calificaciones/exportar, endpoint que
   // ya existe) y lo convierte a filas para armar una exportacion bonita.
-  const obtenerFilasExport = async () => {
+  const obtenerFilasExport = async (claseParam) => {
     const params = new URLSearchParams()
-    if (claseSel) params.set('materiaId', claseSel.claseId)
+    const claseExport = claseParam ?? claseSel
+    if (claseExport) params.set('materiaId', claseExport.claseId)
     params.set('ciclo', '2026')
     const csv = await apiFetchText(`/calificaciones/exportar?${params}`)
     const rows = parseCsv(csv)
@@ -108,25 +115,28 @@ export default function Calificaciones() {
   }
   const fechaExport = () => new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date())
 
-  const exportarCSV = async () => {
+  // Lote 4C: exportarCSV(claseParam) exporta solo esa materia; sin
+  // parámetro exporta todas, agrupadas por materia en secciones.
+  const exportarCSV = async (claseParam) => {
     setExportando(true)
     setExportError('')
     try {
-      const filas = await obtenerFilasExport()
-      const claseNombre = claseSel?.claseNombre ?? 'Todas las clases'
-      const lineas = [
-        'Aulix — Calificaciones',
-        `Clase: ${claseNombre}`,
-        'Ciclo: 2026',
-        `Fecha de exportación: ${fechaExport()}`,
-        `Total de calificaciones: ${filas.length}`,
-        '',
-        ['Alumno', 'Correo', 'Tarea', 'Clase', 'Nota', 'Comentario', 'Fecha'].map(csvCellOut).join(','),
-        ...filas.map((f) => [f.alumno, f.correo, f.tarea, f.clase, f.nota, f.comentario, f.fecha].map(csvCellOut).join(',')),
-      ]
+      const filas = await obtenerFilasExport(claseParam)
+      const claseExport = claseParam ?? claseSel
+
+      const lineas = lineasCSV(filas, claseExport, fechaExport())
+
+
+
+
+
+
+
+
+
       if (!filas.length) lineas.push('Sin calificaciones registradas.')
       const hoy = new Date().toISOString().slice(0, 10)
-      descargar(new Blob(['\ufeff' + lineas.join('\n')], { type: 'text/csv;charset=utf-8' }), `calificaciones-${claseSel ? claseSel.claseId : 'todas'}-${hoy}.csv`)
+      descargar(new Blob(['\ufeff' + lineas.join('\n')], { type: 'text/csv;charset=utf-8' }), `calificaciones-${claseExport ? claseExport.claseId : 'todas'}-${hoy}.csv`)
     } catch (err) {
       setExportError(err.message)
     } finally {
@@ -227,7 +237,7 @@ export default function Calificaciones() {
           <div className="pg-kpis">
             <div className="pg-kpi"><span className="pg-kpi__value">{porCalificarTotal}</span><span className="pg-kpi__label">Entregas por calificar</span></div>
             <div className="pg-kpi"><span className="pg-kpi__value">{resumen.calificacionesTotales ?? 0}</span><span className="pg-kpi__label">Entregas calificadas</span></div>
-            <div className="pg-kpi"><span className="pg-kpi__value">{resumen.calificacionesTotales > 0 && resumen.promedioGeneral != null ? `${resumen.promedioGeneral}/10` : '—'}</span><span className="pg-kpi__label">Promedio general{resumen.calificacionesTotales > 0 ? '' : ' · Sin calificaciones aún'}</span></div>
+
           </div>
 
           <div className="section-head"><h2>Por materia</h2></div>
@@ -242,6 +252,7 @@ export default function Calificaciones() {
                   <div className="pg-card__footer">
                     <span>{c.porCalificar > 0 ? <span className="pg-badge pg-badge--pendiente">{c.porCalificar} por calificar</span> : 'Al día'}</span>
                     <button type="button" className="btn btn--ghost btn--sm" onClick={() => verClase(c)}>Ver alumnos →</button>
+                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => exportarCSV(c)} disabled={exportando}>Exportar CSV de esta materia</button>
                   </div>
                 </article>
               ))}
@@ -251,7 +262,7 @@ export default function Calificaciones() {
       )}
 
       {claseSel && esDocente && (
-        <section style={{ marginTop: 8 }}>
+        <section ref={alumnosRef} style={{ marginTop: 8 }}>
           <div className="section-head">
             <h2>Alumnos · {claseSel.claseNombre}</h2>
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => { setClaseSel(null); setAlumnoSel(null); setEntregas([]) }}>Cerrar</button>
@@ -315,7 +326,7 @@ export default function Calificaciones() {
       )}
 
       {alumnoSel && claseSel && esDocente && (
-        <section style={{ marginTop: 16 }}>
+        <section ref={entregasRef} style={{ marginTop: 16 }}>
           <div className="section-head">
             <h2>{alumnoSel.nombre} · Trabajos entregados</h2>
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => { setAlumnoSel(null); setEntregas([]) }}>Cerrar</button>
@@ -441,6 +452,38 @@ function parseCsv(text) {
   }
   if (cur !== '' || row.length) { pushCell(); pushRow() }
   return rows.filter((r) => r.length > 1 || (r[0] ?? '').trim() !== '')
+}
+// Lote 4C: arma el texto del CSV. Con una materia, encabezado simple;
+// sin materia (general), agrupa las filas por materia en secciones.
+function lineasCSV(filas, claseExport, fecha) {
+  const encabezado = ['Alumno', 'Correo', 'Tarea', 'Clase', 'Nota', 'Comentario', 'Fecha'].map(csvCellOut).join(',')
+  const filaCSV = (f) => [f.alumno, f.correo, f.tarea, f.clase, f.nota, f.comentario, f.fecha].map(csvCellOut).join(',')
+  if (claseExport) {
+    return [
+      'Aulix — Calificaciones',
+      `Clase: ${claseExport.claseNombre ?? ''}`,
+      'Ciclo: 2026',
+      `Fecha de exportación: ${fecha}`,
+      `Total de calificaciones: ${filas.length}`,
+      '',
+      encabezado,
+      ...filas.map(filaCSV),
+    ]
+  }
+  const porClase = {}
+  for (const f of filas) { (porClase[f.clase || 'Sin materia'] ??= []).push(f) }
+  const lineas = [
+    'Aulix — Calificaciones',
+    'Clase: Todas las clases',
+    'Ciclo: 2026',
+    `Fecha de exportación: ${fecha}`,
+    `Total de calificaciones: ${filas.length}`,
+    '',
+  ]
+  for (const [clase, grupo] of Object.entries(porClase)) {
+    lineas.push('---', clase, encabezado, ...grupo.map(filaCSV), '')
+  }
+  return lineas
 }
 function csvCellOut(v) {
   return `"${String(v ?? '').replace(/"/g, '""')}"`

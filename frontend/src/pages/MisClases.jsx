@@ -76,6 +76,8 @@ export default function MisClases() {
         misTareas = await apiFetch(`/clases/${clase.id}/mis-tareas`)
       }
       setDetalle({ anuncios, materiales, alumnos, misTareas })
+      // Lote 2C: el detalle reemplaza la lista, así que se sube arriba.
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50)
       setDetalleStatus('ready')
     } catch (err) {
       setDetalle({ anuncios: [], materiales: [], alumnos: null, misTareas: null, error: err.message })
@@ -165,7 +167,8 @@ export default function MisClases() {
         )}
       </div>
 
-      {!esDocente && (
+      {/* Lote 3: aviso para estudiantes retirado ("Solo tu docente puede crear clases..."). Queda solo el form "Unirse a una clase". */}
+      {false && (
         <div className="pg-alert pg-alert--info" role="status">
           <span>Solo tu docente puede crear clases. Aquí ves las materias en las que estás inscrito; para entrar a una nueva, pide su código y únete abajo.</span>
         </div>

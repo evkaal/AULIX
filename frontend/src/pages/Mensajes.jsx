@@ -10,6 +10,8 @@ import { fmtFechaHora } from '../utils/format'
 import '../styles/pages.css'
 
 const PAGE_SIZE = 50
+// Lote 5C: emojis sin librería nueva; viajan como texto normal en `texto`.
+const EMOJIS = ['😀', '😂', '👍', '❤️', '🎉', '📚', '✅', '👏']
 
 export default function Mensajes() {
   const { user } = useAuth()
@@ -97,7 +99,7 @@ export default function Mensajes() {
       setMsgStatus('ready')
       // Marcar leído al abrir (no bloquea la lectura si falla).
       apiFetch(`/mensajes/conversaciones/${conv.claseId}/leido`, { method: 'POST' })
-        .then(() => setConvs((prev) => prev.map((c) => (c.claseId === conv.claseId ? { ...c, sinLeer: 0 } : c))))
+        .then(() => { setConvs((prev) => prev.map((c) => (c.claseId === conv.claseId ? { ...c, sinLeer: 0 } : c))); try { window.dispatchEvent(new Event('aulix-leido')) } catch { /* sin evento */ } })
         .catch(() => {})
     } catch (err) {
       setMsgError(err.message)
@@ -293,6 +295,11 @@ export default function Mensajes() {
                         <Send size={16} />
                       </button>
                     </form>
+                    <div className="emoji-row" role="group" aria-label="Insertar emoji" style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: '8px 16px 0' }}>
+                      {EMOJIS.map((e) => (
+                        <button key={e} type="button" onClick={() => setTexto((t) => t + e)} aria-label={`Insertar emoji ${e}`} style={{ border: 0, background: 'none', fontSize: 20, cursor: 'pointer', padding: 2, lineHeight: 1 }}>{e}</button>
+                      ))}
+                    </div>
                     {vistaPrevia && (
                       <div className="msg-preview" role="group" aria-label="Vista previa del adjunto">
                         <span className="msg-preview__label">Vista previa antes de enviar:</span>

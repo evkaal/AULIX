@@ -44,7 +44,9 @@ export default function Sidebar({ open, onClose }) {
       if (!cancelado) setBadges({ tareas, mensajes })
     }
     cargar()
-    return () => { cancelado = true }
+    const t = setInterval(cargar, 10000)
+    window.addEventListener('aulix-leido', cargar)
+    return () => { cancelado = true; clearInterval(t); window.removeEventListener('aulix-leido', cargar) }
   }, [esEstudiante])
 
   const links = [
