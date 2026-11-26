@@ -160,6 +160,10 @@
   overflow: hidden;
   background: linear-gradient(180deg, #0b3d6e 0%, #086ac5 42%, #0ea47a 100%);
 }
+/* Lote 5A: fondo del login según la hora (la tarjeta sigue blanca). */
+.login2--manana { background: linear-gradient(180deg, #eaf4ff, #bfe3ff, #e6f7f1); }
+.login2--tarde { background: linear-gradient(180deg, #0b3d6e, #f59e0b 120%, #0ea47a); }
+.login2--noche { background: linear-gradient(180deg, #0b1e33, #12365b, #0a2f52); }
 .login2__bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .login2__bg::before, .login2__bg::after {
   content: ''; position: absolute; border-radius: 50%;

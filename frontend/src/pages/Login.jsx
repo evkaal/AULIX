@@ -56,6 +56,11 @@ export default function Login() {
   const emailRef = useRef(null)
   const passwordRef = useRef(null)
 
+  // Lote 5A: el fondo del login se adapta a la hora de la visita. La
+  // tarjeta ya es blanca (.login2__card); no se toca ThemeToggle/theme.js.
+  const hora = new Date().getHours()
+  const fondoHora = hora < 6 ? 'noche' : hora < 12 ? 'manana' : hora < 19 ? 'tarde' : 'noche'
+
   if (isAuthenticated) return <Navigate to={redirectTo} replace />
 
   const errors = {
@@ -150,7 +155,7 @@ export default function Login() {
   }
 
   return (
-    <main className="login2">
+    <main className={`login2 login2--${fondoHora}`}>
       <div className="login2__bg" aria-hidden="true">
         <span className="login2__moon" />
         <span className="login2__dune login2__dune--a" />
