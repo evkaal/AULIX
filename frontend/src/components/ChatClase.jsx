@@ -94,7 +94,7 @@ export default function ChatClase({ claseId, claseNombre, grupo }) {
       const fd = new FormData()
       let archivoAEnviar = adjunto
       if (notaVoz) archivoAEnviar = new File([notaVoz.blob], `nota-de-voz-${Date.now()}.webm`, { type: notaVoz.blob.type || 'audio/webm' })
-      fd.append('texto', texto.trim())
+      fd.append('texto', texto.trim() || ' ')
       if (archivoAEnviar) fd.append('adjunto', archivoAEnviar)
       const nuevo = await apiFetchForm(`/mensajes/conversaciones/${claseId}/mensajes`, fd)
       setMensajes((m) => [...m, nuevo])

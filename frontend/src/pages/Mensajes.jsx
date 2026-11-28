@@ -154,7 +154,7 @@ export default function Mensajes() {
       if (notaVoz) {
         archivoAEnviar = new File([notaVoz.blob], `nota-de-voz-${Date.now()}.webm`, { type: notaVoz.blob.type || 'audio/webm' })
       }
-      fd.append('texto', texto.trim())
+      fd.append('texto', texto.trim() || ' ')
       if (archivoAEnviar) fd.append('adjunto', archivoAEnviar)
       const nuevo = await apiFetchForm(`/mensajes/conversaciones/${sel.claseId}/mensajes`, fd)
       setMensajes((m) => [...m, nuevo])
