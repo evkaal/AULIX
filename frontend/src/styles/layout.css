@@ -41,7 +41,7 @@
 .navbar { position: sticky; top: 0; z-index: 30; height: 80px; display: flex; align-items: center; gap: 12px; padding: 0 28px; background: #fff; border-bottom: 1px solid var(--border); }
 .navbar__brand { display: inline-flex; align-items: center; gap: 8px; font-size: 27px; font-weight: 800; color: var(--navy); line-height: 1.4; }
 .navbar__logo { height: 32px; width: auto; display: block; }
-.navbar__menu { display: none; margin-left: -8px; color: var(--ink); }
+.navbar__menu { display: inline-grid; margin-left: -8px; color: var(--ink); }
 .navbar__account { margin-left: auto; display: flex; align-items: center; gap: 18px; }
 .navbar__sep { width: 1px; height: 28px; background: var(--border); }
 
@@ -80,6 +80,12 @@
 .sidebar__settings { display: flex; align-items: center; gap: 12px; padding: 8px 12px; font-size: 13px; color: var(--ink); text-decoration: none; border-radius: 8px; position: sticky; bottom: 0; background: #fff; }
 .sidebar__settings:hover { background: var(--bg); }
 .sidebar-overlay { display: none; }
+
+/* Menú lateral oculto con la hamburguesa (solo escritorio): el contenido
+   se expande solo. En móvil el menú es un drawer y lo manda .is-open. */
+@media (min-width: 901px) {
+  .app--menu-oculto .sidebar { display: none; }
+}
 
 /* ---------- Encabezados de página ---------- */
 .page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }

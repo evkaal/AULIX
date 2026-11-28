@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, ChevronDown, LogOut, Menu, UserRound } from 'lucide-react'
+import { Bell, ChevronDown, LogOut, Menu, UserRound, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { apiFetch } from '../../services/authService'
@@ -8,7 +8,7 @@ import ConfirmModal from '../ConfirmModal'
 import ThemeToggle from '../ThemeToggle'
 import logoAulix from '../../assets/logo-aulix.png'
 
-export default function Navbar({ onMenuClick }) {
+export default function Navbar({ menuAbierto, onMenuClick }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -84,8 +84,8 @@ export default function Navbar({ onMenuClick }) {
 
   return (
     <header className="navbar">
-      <button type="button" className="icon-btn navbar__menu" onClick={onMenuClick} aria-label="Abrir menú">
-        <Menu size={22} />
+      <button type="button" className="icon-btn navbar__menu" onClick={onMenuClick} aria-label={menuAbierto ? 'Ocultar menú' : 'Mostrar menú'} aria-expanded={menuAbierto}>
+        {menuAbierto ? <X size={22} /> : <Menu size={22} />}
       </button>
       <span className="navbar__brand"><img src={logoAulix} alt="Logo de Aulix" className="navbar__logo" />Aulix</span>
 
