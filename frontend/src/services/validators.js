@@ -34,3 +34,10 @@ export function validateLoginPassword(value) {
   if (!value) return 'La contraseña es obligatoria.'
   return ''
 }
+/** Teléfono de México: 10 dígitos, solo números (se ignoran espacios y guiones). */
+export function validateTelefono(value) {
+  const digitos = (value ?? '').replace(/\D/g, '')
+  if (!digitos) return 'El número de teléfono es obligatorio.'
+  if (digitos.length !== 10) return 'El teléfono debe tener 10 dígitos, solo números.'
+  return ''
+}

@@ -1,40 +1,46 @@
 import { useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { ArrowRight, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, TriangleAlert, UserRound } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, Phone, TriangleAlert, UserRound } from 'lucide-react'
 import FormField from '../components/FormField'
 import { useAuth } from '../context/AuthContext'
-import { PASSWORD_RULES, validateEmail, validateStrongPassword } from '../services/validators'
+import { PASSWORD_RULES, validateEmail, validateStrongPassword, validateTelefono } from '../services/validators'
 import logo from '../assets/logo-aulix.png'
 import '../styles/login.css'
 
 export default function Registro() {
   const { register, isAuthenticated } = useAuth()
   const navigate = useNavigate()
-  const [values, setValues] = useState({ nombre: '', email: '', password: '', confirmar: '', rol: 'ESTUDIANTE', grupo: '' })
-  const [touched, setTouched] = useState({ nombre: false, email: false, password: false, confirmar: false, grupo: false })
+  const [values, setValues] = useState({ nombre: '', email: '', telefono: '', password: '', confirmar: '', rol: 'ESTUDIANTE' })
+  const [touched, setTouched] = useState({ nombre: false, email: false, telefono: false, password: false, confirmar: false })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState(null) // { message, detalles }
   const nombreRef = useRef(null)
   const emailRef = useRef(null)
+  const telefonoRef = useRef(null)
   const passwordRef = useRef(null)
   const confirmarRef = useRef(null)
-  const grupoRef = useRef(null)
+
+  // Igual que en Login.jsx: el fondo cambia según la hora de la visita.
+  const hora = new Date().getHours()
+  const fondoHora = hora < 6 ? 'noche' : hora < 12 ? 'manana' : hora < 19 ? 'tarde' : 'noche'
 
   if (isAuthenticated) return <Navigate to="/inicio" replace />
 
   const errors = {
     nombre: values.nombre.trim() ? '' : 'El nombre es obligatorio.',
     email: validateEmail(values.email),
+    telefono: validateTelefono(values.telefono),
     password: validateStrongPassword(values.password),
     confirmar: values.confirmar ? (values.confirmar === values.password ? '' : 'Las contraseñas no coinciden.') : 'Confirma tu contraseña.',
-    grupo: values.rol === 'ESTUDIANTE' && !values.grupo.trim() ? 'El grupo es obligatorio para estudiantes.' : '',
   }
   const visibleError = (name) => (touched[name] ? errors[name] : '')
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name } = e.target
+    // El teléfono solo acepta dígitos (México: 10 dígitos).
+    const value = name === 'telefono' ? e.target.value.replace(/\D/g, '').slice(0, 10) : e.target.value
     setValues((v) => ({ ...v, [name]: value }))
     setTouched((t) => ({ ...t, [name]: true }))
     if (apiError) setApiError(null)
@@ -43,24 +49,26 @@ export default function Registro() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setTouched({ nombre: true, email: true, password: true, confirmar: true, grupo: true })
+    setTouched({ nombre: true, email: true, telefono: true, password: true, confirmar: true })
     if (errors.nombre) return nombreRef.current?.focus()
     if (errors.email) return emailRef.current?.focus()
+    if (errors.telefono) return telefonoRef.current?.focus()
     if (errors.password) return passwordRef.current?.focus()
     if (errors.confirmar) return confirmarRef.current?.focus()
-    if (errors.grupo) return grupoRef.current?.focus()
 
     setLoading(true)
     setApiError(null)
     try {
       // register() crea el usuario en MySQL (POST /api/auth/register) y
-      // guarda la sesión igual que el login.
+      // guarda la sesión igual que el login. El teléfono se manda al
+      // backend, pero hoy el backend no tiene ese campo (pendiente del
+      // compañero): lo ignora hasta que lo agregue.
       await register({
         nombre: values.nombre.trim(),
         email: values.email.trim(),
+        telefono: values.telefono.replace(/\D/g, ''),
         password: values.password,
         rol: values.rol,
-        grupo: values.rol === 'ESTUDIANTE' ? values.grupo.trim() : null,
       })
       navigate('/inicio', { replace: true })
     } catch (err) {
@@ -72,40 +80,33 @@ export default function Registro() {
   }
 
   return (
-    <main className="login">
-      <section className="login__brand" aria-label="Bienvenida a Aulix">
-        <div className="brand-identity">
-          <span className="brand-identity__badge"><img src={logo} alt="" /></span>
-          <span className="brand-identity__name">Aulix</span>
-        </div>
-        <div className="brand-promise">
-          <span className="brand-promise__tag">UN ESPACIO PARA CRECER JUNTOS</span>
-          <h1 className="brand-promise__title">
-            Tu clase, conectada.<br />El aprendizaje, sin límites.
-          </h1>
-        </div>
-      </section>
+    <main className={`login2 login2--${fondoHora}`}>
+      <div className="login2__bg" aria-hidden="true">
+        <span className="login2__moon" />
+        <span className="login2__dune login2__dune--a" />
+        <span className="login2__dune login2__dune--b" />
+        <span className="login2__dune login2__dune--c" />
+      </div>
 
-      <section className="login__access">
-        <div className="login__mobile-brand">
-          <img src={logo} alt="" />
+      <section className="login2__card" aria-label="Crear cuenta en Aulix">
+        <div className="login2__logo">
+          <img src={logo} alt="Logotipo de Aulix" />
           <span>Aulix</span>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit} noValidate>
-          <header className="login-form__header">
-            <p className="login-form__eyebrow">CREA TU CUENTA</p>
-            <h2 className="login-form__title">Regístrate gratis</h2>
-            <p className="login-form__subtitle">Tu cuenta se guarda en Aulix y podrás entrar con tu correo.</p>
-          </header>
+        <header className="login2__header">
+          <h1 className="login2__title">Crear cuenta</h1>
+          <p className="login2__subtitle">Tu cuenta se guarda en Aulix y podrás entrar con tu correo.</p>
+        </header>
 
-          {apiError && (
-            <div className="alert alert--error" role="alert">
-              <TriangleAlert size={18} />
-              <span>{apiError.message}</span>
-            </div>
-          )}
+        {apiError && (
+          <div className="alert alert--error" role="alert">
+            <TriangleAlert size={18} />
+            <span>{apiError.message}</span>
+          </div>
+        )}
 
+        <form className="login2__form" onSubmit={handleSubmit} noValidate>
           <FormField
             label="Nombre completo"
             icon={UserRound}
@@ -137,6 +138,23 @@ export default function Registro() {
             disabled={loading}
           />
 
+          <FormField
+            label="Número de teléfono"
+            icon={Phone}
+            name="telefono"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel"
+            placeholder="9511234567"
+            maxLength={10}
+            value={values.telefono}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={visibleError('telefono')}
+            inputRef={telefonoRef}
+            disabled={loading}
+          />
+
           <div className="field">
             <span className="field__label">Soy</span>
             <div className="pg-radio-row" role="radiogroup" aria-label="Rol">
@@ -158,23 +176,6 @@ export default function Registro() {
               ))}
             </div>
           </div>
-
-          {values.rol === 'ESTUDIANTE' && (
-            <FormField
-              label="Grupo"
-              icon={UserRound}
-              name="grupo"
-              type="text"
-              autoComplete="off"
-              placeholder="3° A"
-              value={values.grupo}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={visibleError('grupo')}
-              inputRef={grupoRef}
-              disabled={loading}
-            />
-          )}
 
           <FormField
             label="Contraseña"
@@ -233,7 +234,7 @@ export default function Registro() {
             }
           />
 
-          <button type="submit" className="btn-primary" disabled={loading} aria-busy={loading}>
+          <button type="submit" className="btn-primary login2__submit" disabled={loading} aria-busy={loading}>
             {loading ? (
               <>
                 <LoaderCircle size={18} className="spin" aria-hidden="true" />
@@ -253,6 +254,8 @@ export default function Registro() {
           </p>
         </form>
       </section>
+
+      <p className="login2__foot">Aulix · Tu clase, conectada. El aprendizaje, sin límites.</p>
     </main>
   )
 }

@@ -232,7 +232,7 @@ function pageOf(list, params = {}) {
   const totalElements = filtered.length
   return { content: filtered.slice(page * size, page * size + size), totalElements, totalPages: Math.max(1, Math.ceil(totalElements / size)), number: page, size }
 }
-const pub = (u) => ({ id: u.id, nombre: u.nombre, correo: u.correo, rol: u.rol, grupo: u.grupo ?? null, ciclo: 2026, avatar: u.avatar ?? null })
+const pub = (u) => ({ id: u.id, nombre: u.nombre, correo: u.correo, rol: u.rol, grupo: u.grupo ?? null, telefono: u.telefono ?? null, ciclo: 2026, avatar: u.avatar ?? null })
 // Estado de una tarea según su fecha de activación (v7, igual que debe
 // mandar el frontend al backend real: el backend NO deriva PROGRAMADA
 // solo, usa el `estado` que recibe, con ACTIVA por defecto). Si la
@@ -304,7 +304,7 @@ export async function mockRequest(pathWithQuery, { method = 'GET', body: rawBody
   if (path === '/auth/register' && method === 'POST') {
     if (db.usuarios.some((x) => x.correo.toLowerCase() === String(body?.email || '').toLowerCase())) throw new DemoError('Ese correo ya está registrado.', 400, 'validation')
     const rol = body.rol === 'ALUMNO' ? 'ESTUDIANTE' : (body.rol || 'ESTUDIANTE')
-    const u = { id: db.seq.usuario++, nombre: body.nombre, correo: body.email, password: body.password, rol, grupo: body.grupo ?? null }
+    const u = { id: db.seq.usuario++, nombre: body.nombre, correo: body.email, password: body.password, rol, grupo: body.grupo ?? null, telefono: body.telefono ?? null }
     db.usuarios.push(u); save(db)
     return { token: `demo-${rol.toLowerCase()}-${u.id}-${Date.now()}`, user: pub(u) }
   }

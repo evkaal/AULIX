@@ -109,18 +109,18 @@ export async function loginWithGoogle(idToken) {
   return { token: data.token, user: data.user }
 }
 
-export async function register({ nombre, email, password, rol, grupo }) {
+export async function register({ nombre, email, password, rol, telefono }) {
   const rolReal = normalizeRol(rol)
   if (DEMO_MODE) {
-    const data = await mockRequest('/auth/register', { method: 'POST', body: { nombre, email, password, rol: rolReal, grupo } })
+    const data = await mockRequest('/auth/register', { method: 'POST', body: { nombre, email, password, rol: rolReal, telefono } })
     return { token: data.token, user: { ...data.user, rol: normalizeRol(data.user.rol) } }
   }
   try {
-    const data = await post('/register', { nombre, email, password, rol: rolReal, grupo })
+    const data = await post('/register', { nombre, email, password, rol: rolReal, telefono })
     return { token: data.token, user: { ...data.user, rol: normalizeRol(data.user.rol) } }
   } catch (err) {
     if (DEMO_FALLBACK && err?.type === 'network') {
-      const data = await mockRequest('/auth/register', { method: 'POST', body: { nombre, email, password, rol: rolReal, grupo } })
+      const data = await mockRequest('/auth/register', { method: 'POST', body: { nombre, email, password, rol: rolReal, telefono } })
       return { token: data.token, user: { ...data.user, rol: normalizeRol(data.user.rol) } }
     }
     throw err

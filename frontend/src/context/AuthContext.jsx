@@ -44,8 +44,8 @@ export function AuthProvider({ children }) {
   /** Registro: crea el usuario en el backend (POST /api/auth/register) y
    *  deja la sesión guardada igual que el login. El registro no usa
    *  "Recordarme": la sesión queda en sessionStorage. */
-  const register = useCallback(async ({ nombre, email, password, rol, grupo }) => {
-    const data = await registerRequest({ nombre, email, password, rol, grupo })
+  const register = useCallback(async ({ nombre, email, password, rol, telefono }) => {
+    const data = await registerRequest({ nombre, email, password, rol, telefono })
     return saveSession(data, false)
   }, [saveSession])
 

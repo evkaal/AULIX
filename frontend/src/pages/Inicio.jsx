@@ -172,7 +172,7 @@ export default function Inicio() {
           <nav className="pg-tabs" aria-label="Ir a sección" style={{ marginBottom: 8 }}>
             <a className="pg-tab" href="#sec-clases">Mis clases</a>
             <a className="pg-tab" href="#sec-avisos">Avisos recientes</a>
-            <a className="pg-tab" href="#sec-actividad">Actividad reciente</a>
+            {!esEstudiante && (<a className="pg-tab" href="#sec-actividad">Actividad reciente</a>)}
           </nav>
           {(state.data.tareasPendientes != null || entregadas != null || state.data.trabajosCalificados != null || proximas.length > 0 || porCalificar != null) && (
             <section className="pg-kpis" aria-label="Resumen">
@@ -257,6 +257,7 @@ export default function Inicio() {
             </section>
           )}
 
+          {!esEstudiante && (
           <section>
             <div className="section-head">
               <h2 id="sec-actividad">Actividad reciente</h2>
@@ -297,6 +298,7 @@ export default function Inicio() {
               ))}
             </div>
           </section>
+          )}
         </>
       )}
     </>
