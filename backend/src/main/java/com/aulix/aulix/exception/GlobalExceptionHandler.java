@@ -67,6 +67,15 @@ public class GlobalExceptionHandler {
                 .body(Map.of("status", 400, "error", "El archivo supera el tamaño máximo de 20 MB"));
     }
 
+    /** Cualquier error no previsto (p. ej. Twilio en test-sms):
+     *  500 con el mensaje, en el formato JSON de AULIX, en vez del
+     *  cuerpo genérico de Spring. */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGeneric(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", 500, "error", mensajeSeguro(ex)));
+    }
+
     /** Map.of no acepta valores nulos: si la excepción no trae mensaje
      *  (pasa con tokens JWT malformados), usa uno genérico para no
      *  convertir un 400 en un 500. */

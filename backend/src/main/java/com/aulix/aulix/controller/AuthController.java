@@ -18,10 +18,12 @@ import com.aulix.aulix.dto.GoogleLoginRequest;
 import com.aulix.aulix.dto.LoginRequest;
 import com.aulix.aulix.dto.RegisterRequest;
 import com.aulix.aulix.dto.TestEmailRequest;
+import com.aulix.aulix.dto.TestSmsRequest;
 import com.aulix.aulix.dto.UserResponse;
 import com.aulix.aulix.service.AuthService;
 import com.aulix.aulix.service.EmailService;
 import com.aulix.aulix.service.SecurityHelper;
+import com.aulix.aulix.service.SmsService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final EmailService emailService;
+    private final SmsService smsService;
     private final SecurityHelper security;
 
     @Value("${aulix.email.proveedor:postfix}")
@@ -66,6 +69,18 @@ public class AuthController {
         emailService.sendPrueba(request.email());
         return ResponseEntity.ok(Map.of("ok", true, "proveedor", proveedor,
                 "message", "Correo de prueba enviado a " + request.email() + " por " + proveedor));
+    }
+
+    /** Prueba de envío de SMS de bienvenida. Solo docentes (ver
+     *  SecurityConfig): envía el texto de bienvenida al número indicado.
+     *  Responde 200 si Twilio lo aceptó; si el teléfono no es válido
+     *  responde 400; si Twilio no está configurado o falla, responde 500
+     *  con el mensaje de Twilio. */
+    @PostMapping("/test-sms")
+    public ResponseEntity<Map<String, Object>> testSms(@Valid @RequestBody TestSmsRequest request) {
+        smsService.sendPrueba(request.telefono(), request.nombre());
+        return ResponseEntity.ok(Map.of("ok", true, "proveedor", "sms",
+                "message", "SMS de bienvenida enviado a " + request.telefono()));
     }
 
     @GetMapping("/me")

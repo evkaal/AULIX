@@ -1,0 +1,33 @@
+meta {
+  name: 06 - Test WhatsApp
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/auth/test-whatsapp
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "telefono": "+5215512345678",
+    "nombre": "Prueba"
+  }
+}
+
+tests {
+  test("Test WhatsApp devuelve 200 con proveedor whatsapp", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().proveedor).to.equal("whatsapp");
+  });
+}

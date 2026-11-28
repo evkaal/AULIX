@@ -37,6 +37,9 @@ public class SecurityConfig {
                 // Igual que change-password: va ANTES del permitAll de /api/auth/**.
                 // Solo un docente autenticado puede probar el envío de correo.
                 .requestMatchers(HttpMethod.POST, "/api/auth/test-email").hasRole("DOCENTE")
+                // Igual que test-email: solo un docente autenticado puede
+                // probar el envío de SMS.
+                .requestMatchers(HttpMethod.POST, "/api/auth/test-sms").hasRole("DOCENTE")
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated()

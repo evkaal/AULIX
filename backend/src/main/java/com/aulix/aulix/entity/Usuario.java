@@ -63,6 +63,10 @@ public class Usuario implements UserDetails {
 
     private String avatarUrl;
 
+    /** Teléfono móvil para el SMS de bienvenida (E.164, ej. +5215512345678). Opcional. */
+    @Column(length = 20)
+    private String telefono;
+
     @Default
     @Column(nullable = false)
     private boolean activo = true;

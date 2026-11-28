@@ -25,5 +25,8 @@ public record RegisterRequest(
     @NotNull(message = "El rol es obligatorio") Rol rol,
     /** Grupo del estudiante, ej. "3° A". Null para docentes. */
     String grupo,
-    Integer ciclo
+    Integer ciclo,
+    /** Teléfono móvil opcional para el SMS de bienvenida. Se guarda
+     *  normalizado a E.164 (+521...); si no es válido se guarda null. */
+    String telefono
 ) {}

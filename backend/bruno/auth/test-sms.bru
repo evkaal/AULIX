@@ -1,0 +1,33 @@
+meta {
+  name: 06 - Test SMS
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/auth/test-sms
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+token: <redacted>
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "telefono": "+5215512345678",
+    "nombre": "Prueba"
+  }
+}
+
+tests {
+  test("Test SMS devuelve 200 con proveedor sms", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().proveedor).to.equal("sms");
+  });
+}

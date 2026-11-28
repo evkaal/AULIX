@@ -37,6 +37,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final SmsService smsService;
 
     /** ID de cliente de OAuth de Google Cloud (ver application.properties).
      *  Sin él, el inicio con Google no está configurado. */
@@ -54,12 +55,16 @@ public class AuthService {
                 .rol(request.rol())
                 .grupo(request.grupo())
                 .ciclo(request.ciclo() != null ? request.ciclo() : 2026)
+                .telefono(SmsService.normalizar(request.telefono()))
                 .activo(true)
                 .build();
         usuarioRepository.save(usuario);
         // El correo de bienvenida no debe hacer fallar ni ralentizar el registro:
         // se manda en un hilo aparte y si Resend falla solo queda en el log.
         emailService.sendBienvenidaAsync(usuario.getEmail(), usuario.getNombre());
+        // Igual que el correo: el SMS de bienvenida no debe hacer
+        // fallar ni ralentizar el registro. Sin teléfono no se manda nada.
+        smsService.sendBienvenidaAsync(usuario);
         String jwtToken = jwtService.generateToken(usuario);
         return new AuthResponse(jwtToken, UserResponse.of(usuario));
     }
@@ -139,6 +144,9 @@ public class AuthService {
             usuarioRepository.save(usuario);
             // Solo al crear la cuenta (no al entrar con una existente).
             emailService.sendBienvenidaAsync(usuario.getEmail(), usuario.getNombre());
+            // Google no da teléfono, así que hoy no manda nada; queda el
+            // gancho para cuando se capture el teléfono de estas cuentas.
+            smsService.sendBienvenidaAsync(usuario);
         }
         String jwtToken = jwtService.generateToken(usuario);
         return new AuthResponse(jwtToken, UserResponse.of(usuario));
