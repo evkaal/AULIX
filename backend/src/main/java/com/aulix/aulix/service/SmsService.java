@@ -78,7 +78,7 @@ public class SmsService {
     public void sendPrueba(String telefonoCrudo, String nombre) {
         String telefono = normalizar(telefonoCrudo);
         if (telefono == null) {
-            throw new IllegalArgumentException("El teléfono no es válido. Usa 10 dígitos (ej. 5512345678) o formato internacional (ej. +5215512345678)");
+            throw new IllegalArgumentException("El teléfono no es válido. Usa 10 dígitos (ej. 5512345678) o formato internacional (ej. +525512345678)");
         }
         if (!sender.configurado()) {
             throw new IllegalStateException("Twilio no configurado: faltan TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN o TWILIO_SMS_FROM en el .env del servidor");
@@ -89,8 +89,15 @@ public class SmsService {
     /**
      * Normaliza un teléfono a E.164. Quita espacios, guiones, paréntesis
      * y puntos. Un número mexicano de 10 dígitos se convierte en
-     * +521 + dígitos. Un número que ya viene en +E.164 se deja tal cual.
+     * +52 + dígitos. Un número que ya viene en +E.164 se deja tal cual.
      * Devuelve null si no se puede interpretar como teléfono válido.
+     *
+     * OJO: el prefijo +521 es obsoleto desde 2019 (México eliminó el 1
+     * para móviles). El formato vigente y el que Twilio tiene verificado
+     * es +52 + 10 dígitos. Si el número viene con el 1 (+521... o
+     * 521...), se quita: +5219518741946 -> +529518741946. Con el 1,
+     * Twilio lo trata como otro número distinto y responde 572002
+     * ("add the 'to' number as a verified recipient").
      */
     public static String normalizar(String telefonoCrudo) {
         if (telefonoCrudo == null) {
@@ -101,19 +108,22 @@ public class SmsService {
             return null;
         }
         if (limpio.startsWith("+")) {
+            if (limpio.matches("\\+521\\d{10}")) {
+                return "+52" + limpio.substring(4);
+            }
             return limpio.matches("\\+\\d{10,15}") ? limpio : null;
         }
         if (!limpio.matches("\\d+")) {
             return null;
         }
         if (limpio.length() == 10) {
-            return "+521" + limpio;
+            return "+52" + limpio;
         }
         if (limpio.length() == 12 && limpio.startsWith("52")) {
             return "+" + limpio;
         }
         if (limpio.length() == 13 && limpio.startsWith("521")) {
-            return "+" + limpio;
+            return "+52" + limpio.substring(3);
         }
         if (limpio.length() >= 10 && limpio.length() <= 15) {
             return "+" + limpio;
