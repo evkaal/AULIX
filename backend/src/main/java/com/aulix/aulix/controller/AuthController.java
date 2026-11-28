@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import com.aulix.aulix.dto.AuthResponse;
 import com.aulix.aulix.dto.ChangePasswordRequest;
 import com.aulix.aulix.dto.GoogleLoginRequest;
@@ -33,6 +35,9 @@ public class AuthController {
     private final EmailService emailService;
     private final SecurityHelper security;
 
+    @Value("${aulix.email.proveedor:postfix}")
+    private String proveedor;
+
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
@@ -51,14 +56,16 @@ public class AuthController {
         return ResponseEntity.ok(authService.loginWithGoogle(request.idToken()));
     }
 
-    /** Prueba de envío de correo con Resend. Solo docentes (ver SecurityConfig):
-     *  envía un correo de prueba al correo indicado. Responde 200 si Resend lo
-     *  aceptó; si la clave no está configurada o Resend falla, responde 500.
+    /** Prueba de envío de correo con el proveedor configurado (Postfix por
+     *  defecto, Resend como respaldo). Solo docentes (ver SecurityConfig):
+     *  envía un correo de prueba al correo indicado. Responde 200 si el
+     *  proveedor lo aceptó; si no está configurado o falla, responde 500.
      *  Un correo inválido responde 422 (validación global de AULIX). */
     @PostMapping("/test-email")
     public ResponseEntity<Map<String, Object>> testEmail(@Valid @RequestBody TestEmailRequest request) {
         emailService.sendPrueba(request.email());
-        return ResponseEntity.ok(Map.of("ok", true, "message", "Correo de prueba enviado a " + request.email()));
+        return ResponseEntity.ok(Map.of("ok", true, "proveedor", proveedor,
+                "message", "Correo de prueba enviado a " + request.email() + " por " + proveedor));
     }
 
     @GetMapping("/me")
