@@ -85,6 +85,10 @@ export default function Inicio() {
   const [state, setState] = useState({ status: 'loading', data: null })
   const [post, setPost] = useState('')
   const [avisos, setAvisos] = useState([])
+  // Total de entregas por calificar (docente). El resumen del dashboard
+  // no trae ese número en modo real; se usa el endpoint que ya existe
+  // GET /api/calificaciones/resumen y se suman los porCalificar.
+  const [porCalificar, setPorCalificar] = useState(null)
   // Publicaciones locales del Home (v7): el cuadro "¿Qué quieres
   // compartir?" y su botón de imagen no hacían nada. Ahora publicar
   // añade el texto a la actividad reciente (solo en esta sesión).
@@ -119,6 +123,15 @@ export default function Inicio() {
     }
   }, [loadAvisos])
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    if (user?.rol !== 'DOCENTE') return undefined
+    let vivo = true
+    apiFetch('/calificaciones/resumen')
+      .then((r) => { if (vivo) setPorCalificar((r?.porClase ?? []).reduce((a, c) => a + (c.porCalificar ?? 0), 0)) })
+      .catch(() => { if (vivo) setPorCalificar(null) })
+    return () => { vivo = false }
+  }, [user?.rol])
 
   const firstName = user?.nombre?.split(' ')[0] ?? ''
   // v9 (bug 2): "Próximas entregas" solo muestra tareas PENDIENTES. El
@@ -161,10 +174,16 @@ export default function Inicio() {
             <a className="pg-tab" href="#sec-avisos">Avisos recientes</a>
             <a className="pg-tab" href="#sec-actividad">Actividad reciente</a>
           </nav>
-          {(state.data.tareasPendientes != null || entregadas != null || state.data.trabajosCalificados != null || proximas.length > 0) && (
+          {(state.data.tareasPendientes != null || entregadas != null || state.data.trabajosCalificados != null || proximas.length > 0 || porCalificar != null) && (
             <section className="pg-kpis" aria-label="Resumen">
               {state.data.tareasPendientes != null && (
                 <div className="pg-kpi"><span className="pg-kpi__value">{state.data.tareasPendientes}</span><span className="pg-kpi__label">Tareas pendientes</span></div>
+              )}
+              {porCalificar != null && (
+                <Link to="/calificaciones" className="pg-kpi" style={{ textDecoration: 'none' }} aria-label={`${porCalificar} entregas por calificar. Ir a Calificaciones`}>
+                  <span className="pg-kpi__value">{porCalificar}</span>
+                  <span className="pg-kpi__label">Por calificar</span>
+                </Link>
               )}
               {entregadas != null && (
                 <div className="pg-kpi"><span className="pg-kpi__value">{entregadas}</span><span className="pg-kpi__label">Entregadas · por calificar</span></div>

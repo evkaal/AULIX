@@ -15,6 +15,22 @@ const TABS = [
   { value: 'CERRADA', label: 'Cerradas' },
 ]
 
+// Badge "faltan X días" / "vence hoy" / "vencida": solo presentación, se
+// calcula con la fecha de vencimiento que ya trae cada tarea.
+function vencimientoBadge(fechaVencimiento) {
+  if (!fechaVencimiento) return null
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+  const vence = new Date(fechaVencimiento)
+  vence.setHours(0, 0, 0, 0)
+  const dias = Math.round((vence - hoy) / 86400000)
+  if (dias > 1) return { label: `Faltan ${dias} días`, clase: 'pendiente' }
+  if (dias === 1) return { label: 'Falta 1 día', clase: 'pendiente' }
+  if (dias === 0) return { label: 'Vence hoy', clase: 'pendiente' }
+  if (dias === -1) return { label: 'Vencida ayer', clase: 'vencida' }
+  return { label: `Vencida hace ${-dias} días`, clase: 'vencida' }
+}
+
 const emptyForm = {
   claseId: '', titulo: '', descripcion: '', instrucciones: '',
   fechaActivacion: '', fechaVencimiento: '', activacionAutomatica: true, estado: 'AUTO',
@@ -28,6 +44,9 @@ export default function Tareas() {
   const [tab, setTab] = useState('')
   const [materiaId, setMateriaId] = useState('')
   const [q, setQ] = useState('')
+  // Filtro por mi estado (solo estudiante) y orden por vencimiento.
+  const [miEstado, setMiEstado] = useState('')
+  const [orden, setOrden] = useState('asc')
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
@@ -69,17 +88,25 @@ export default function Tareas() {
       // la tarea se hace aqui, en el cliente, con t.estado.
       if (esDocente && tab) params.set('estado', tab)
       if (q.trim()) params.set('q', q.trim())
+      // Filtro por mi estado (estudiante): el backend lo compara en el
+      // servidor con miEstado (pendiente/entregada/calificada). Para el
+      // docente `estado` es el estado de la tarea y ya lo usan las pestañas.
+      if (!esDocente && miEstado) params.set('estado', miEstado)
       const data = await apiFetch(esDocente ? `/tareas?${params}` : `/estudiante/tareas?${params}`)
       let lista = Array.isArray(data) ? data : []
       if (!esDocente && tab) lista = lista.filter((t) => t.estado === tab)
       lista = [...lista].sort((a, b) => String(a.fechaVencimiento || '').localeCompare(String(b.fechaVencimiento || '')))
+      // Orden por vencimiento: el backend ya devuelve la lista completa
+      // ordenada ascendente; este control solo invierte el orden de la
+      // lista que devolvió el servidor (no filtra ni recorta nada).
+      if (orden === 'desc') lista.reverse()
       setTareas(lista)
       setStatus('ready')
     } catch (err) {
       setError(err.message)
       setStatus('error')
     }
-  }, [materiaId, tab, q, esDocente])
+  }, [materiaId, tab, q, miEstado, orden, esDocente])
 
   useEffect(() => {
     apiFetch('/clases').then(setClases).catch(() => setClases([]))
@@ -348,6 +375,18 @@ export default function Tareas() {
           <option value="">Todas las materias</option>
           {clases.map((c) => <option key={c.id} value={c.id}>{c.nombre} · {c.grupo}</option>)}
         </select>
+        {!esDocente && (
+          <select className="pg-select" style={{ width: 200 }} value={miEstado} onChange={(e) => setMiEstado(e.target.value)} aria-label="Filtrar por mi estado">
+            <option value="">Mi estado: todos</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="entregada">Entregadas</option>
+            <option value="calificada">Calificadas</option>
+          </select>
+        )}
+        <select className="pg-select" style={{ width: 230 }} value={orden} onChange={(e) => setOrden(e.target.value)} aria-label="Ordenar por vencimiento">
+          <option value="asc">Vencimiento: más próximo</option>
+          <option value="desc">Vencimiento: más lejano</option>
+        </select>
       </div>
 
       {eliminarError && <p className="pg-error" role="alert">{eliminarError}</p>}
@@ -382,6 +421,7 @@ export default function Tareas() {
                   <td>
                     {t.fechaVencimiento ? fmtFechaHora(t.fechaVencimiento) : '—'}
                     {t.estado === 'PROGRAMADA' && t.fechaActivacion && <><br /><span className="pg-sub">Se activa: {fmtFechaHora(t.fechaActivacion)}</span></>}
+                    {(() => { const b = vencimientoBadge(t.fechaVencimiento); return b ? <><br /><span className={`pg-badge pg-badge--${b.clase}`}>{b.label}</span></> : null })()}
                   </td>
                   <td>
                     {esDocente

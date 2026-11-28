@@ -52,6 +52,9 @@ export default function Calificaciones() {
 
   useEffect(() => { loadResumen() }, [loadResumen])
 
+  // Última búsqueda ya pedida al servidor (evita repetir la petición
+  // cuando el mismo texto llega por Enter, por pestaña o por el debounce).
+  const ultimaBusqueda = useRef('')
   const cargarAlumnos = useCallback(async (claseId, p = 0, f = filtro, query = q) => {
     setAlumnosStatus('loading')
     setAlumnosError('')
@@ -59,6 +62,7 @@ export default function Calificaciones() {
       const params = new URLSearchParams({ page: String(p), size: String(PAGE_SIZE) })
       if (f) params.set('filtro', f)
       if (query.trim()) params.set('q', query.trim())
+      ultimaBusqueda.current = query.trim()
       setAlumnos(await apiFetch(`/clases/${claseId}/alumnos?${params}`))
       setPage(p)
       setAlumnosStatus('ready')
@@ -67,6 +71,19 @@ export default function Calificaciones() {
       setAlumnosStatus('error')
     }
   }, [filtro, q])
+
+  // Búsqueda en vivo: al escribir se espera 400 ms y se busca en el
+  // servidor (?q=), igual que al pulsar Enter. Antes la búsqueda solo se
+  // disparaba con Enter y el texto no parecía hacer nada al teclear.
+  useEffect(() => {
+    if (!claseSel) return undefined
+    if (q.trim() === ultimaBusqueda.current) return undefined
+    const t = setTimeout(() => {
+      ultimaBusqueda.current = q.trim()
+      cargarAlumnos(claseSel.claseId, 0, filtro, q)
+    }, 400)
+    return () => clearTimeout(t)
+  }, [q, claseSel, filtro, cargarAlumnos])
 
   const verClase = (clase) => {
     setClaseSel(clase)
